@@ -1,39 +1,48 @@
 package issue.tracker.system.core.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
+import lombok.*;
 import java.time.Instant;
 
-@NoArgsConstructor
-@Entity
-@Builder
 @Data
+@NoArgsConstructor
 @AllArgsConstructor
+@Builder
+@Entity
+@Table(name = "tasks")
 public class Task {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @Column(nullable = false)
     private String name;
-    private String type;
-    @Lob
+
     @Column(columnDefinition = "TEXT")
     private String description;
-    private Long authorId;
-    private Long assigneeId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "author_id", nullable = false)
+    private User author;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "assignee_id")
+    private User assignee;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Status status;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Priority priority;
+
     @Column(nullable = false)
     private Instant startTime;
+
     @Column(nullable = false)
-    private Instant endTime;
+    private Instant dueDate;
+
     private Long sprintId;
 }

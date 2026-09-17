@@ -14,8 +14,11 @@ import lombok.*;
 public class IssueStatus {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "issue_status_seq_gen")
-    @SequenceGenerator(name = "issue_status_seq_gen", sequenceName = "issue_status_seq", allocationSize = 50)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE,
+            generator = "issue_status_seq_gen")
+    @SequenceGenerator(name = "issue_status_seq_gen",
+            sequenceName = "issue_status_seq",
+            allocationSize = 50)
     @EqualsAndHashCode.Include
     private Long id;
 

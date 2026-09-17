@@ -20,8 +20,11 @@ import java.time.Instant;
 public class Project {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "project_seq_gen")
-    @SequenceGenerator(name = "project_seq_gen", sequenceName = "project_seq", allocationSize = 50)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE,
+            generator = "project_seq_gen")
+    @SequenceGenerator(name = "project_seq_gen",
+            sequenceName = "project_seq",
+            allocationSize = 50)
     @EqualsAndHashCode.Include
     private Long id;
 

@@ -20,8 +20,11 @@ import java.time.Instant;
 public class Issue {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "issue_seq_gen")
-    @SequenceGenerator(name = "issue_seq_gen", sequenceName = "issue_seq", allocationSize = 50)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE,
+            generator = "issue_seq_gen")
+    @SequenceGenerator(name = "issue_seq_gen",
+            sequenceName = "issue_seq",
+            allocationSize = 50)
     @EqualsAndHashCode.Include
     private Long id;
 

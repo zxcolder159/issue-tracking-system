@@ -10,13 +10,17 @@ import lombok.*;
 @Getter
 @Setter
 @Entity
-@Table(name = "project_members", uniqueConstraints = {@UniqueConstraint(columnNames = {"user_id", "project_id"})})
+@Table(name = "project_members", uniqueConstraints =
+        {@UniqueConstraint(columnNames = {"user_id", "project_id"})})
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class ProjectMember {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "project_member_seq_gen")
-    @SequenceGenerator(name = "project_member_seq_gen", sequenceName = "project_member_seq", allocationSize = 50)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE,
+            generator = "project_member_seq_gen")
+    @SequenceGenerator(name = "project_member_seq_gen",
+            sequenceName = "project_member_seq",
+            allocationSize = 50)
     @EqualsAndHashCode.Include
     private Long id;
 

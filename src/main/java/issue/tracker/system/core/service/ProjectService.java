@@ -55,7 +55,6 @@ public class ProjectService {
                 .orElseThrow(() -> new ResourceNotFoundException("Project not found with id: " + projectId));
         requireAdminRole(projectId, currentUserId);
 
-        // project is a managed entity: mapper changes are flushed by dirty checking, no explicit save needed
         projectMapper.updateProjectFromDto(projectDto, project);
     }
 

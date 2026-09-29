@@ -72,8 +72,6 @@
 
 ## Подробное описание трёх юзкейсов
 
-Шаблон — из Lecture 2 (по A. Cockburn): Name, Actors, Goals, Trigger condition, Precondition/Context, Extensions, Main success scenario, Alternative scenarios.
-
 ### UC-28. Сменить статус issue перетаскиванием карточки (drag-n-drop)
 
 **Название.** Смена статуса issue через перетаскивание карточки в другой столбец доски.

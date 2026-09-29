@@ -2,17 +2,15 @@
 
 ## Бэкенд
 
-- Java 21 + Spring Boot (Web MVC, Security, Data JPA). Зрелая платформа, закрывает все архитектурные задачи курса: DI, слоистая архитектура (controller → service → repository), декларативная безопасность с проверкой ролей в контексте пространства, транзакционность смены статуса. Команда знает Java.
-- PostgreSQL. Критична реляционная целостность: issue ссылается на автора, assignee, пространство и статус через внешние ключи. Транзакции обеспечивают атомарную смену статуса с проверкой правил lifecycle. JSONB — задел под настраиваемые поля.
-- Docker Compose — локальный подъём БД. Flyway — миграции схемы, вводим вместе с первыми миграциями.
+- Java 21 + Spring Boot (Web MVC, Security, Data JPA). 
+- PostgreSQL. 
+- Docker Compose 
 
 ## Фронтенд
 
-- Vue 3 + TypeScript (Composition API), сборка Vite. Команда знает Vue; Composition API хорошо типизируется и позволяет выносить логику в композаблы (работа с API, состояние доски).
-- Drag-n-drop: vue-draggable-plus или vuedraggable (обёртки над Sortable.js) — покрывают типовой сценарий kanban-доски. Если потребуется более тонкий контроль — Pragmatic Drag and Drop (Atlassian, framework-agnostic).
-- UI-кит (date picker, таблицы для List view): Element Plus / Ant Design Vue / Naive UI. Выберем вместе с прототипом доски.
-
-Рассмотренные альтернативы: React + dnd-kit (меньше опыта у команды) и Thymeleaf + HTMX (интерактивную доску с drag-n-drop пришлось бы дописывать руками).
+- Vue 3 + TypeScript (Composition API), сборка Vite.
+- Drag-n-drop: vue-draggable-plus или vuedraggable (обёртки над Sortable.js)
+- UI-кит (date picker, таблицы для List view): Element Plus / Ant Design Vue / Naive UI. 
 
 ## Инфраструктура и качество
 

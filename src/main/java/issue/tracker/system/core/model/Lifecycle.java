@@ -39,7 +39,6 @@ public class Lifecycle {
     @Builder.Default
     @OneToMany(mappedBy = "lifecycle")
     @OrderBy("order ASC, id ASC")
-    @SQLRestriction("deleted_at IS NULL")
     private List<Status> statuses = new ArrayList<>();
 
     @Builder.Default

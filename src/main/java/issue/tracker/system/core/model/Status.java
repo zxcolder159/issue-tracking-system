@@ -38,9 +38,12 @@ public class Status {
     private Integer order;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "project_id", nullable = false)
+    private Project project;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "lifecycle_id", nullable = false)
     private Lifecycle lifecycle;
 
     private Instant deletedAt;
-
 }

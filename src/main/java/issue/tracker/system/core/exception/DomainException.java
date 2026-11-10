@@ -1,17 +1,17 @@
 package issue.tracker.system.core.exception;
 
 /**
- * Base runtime exception for all domain-level failures of the issue tracker.
+ * Базовое runtime-исключение для всех доменных ошибок issue tracker.
  *
- * <p>Every subclass carries a human-readable message: per the project vision
- * a rejection must always be explained to the user, there are no silent errors.
+ * <p>Каждый наследник содержит человекочитаемое сообщение: по концепции
+ * проекта пользователю всегда объясняют причину отказа, тихих ошибок нет.
  */
 public class DomainException extends RuntimeException {
 
     /**
-     * Creates the exception.
+     * Создаёт исключение.
      *
-     * @param message human-readable explanation shown to the user
+     * @param message человекочитаемое объяснение для пользователя
      */
     public DomainException(String message) {
         super(message);

@@ -4,15 +4,15 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
- * Entry point of the issue tracking system (Spring Boot).
+ * Точка входа issue tracking system (Spring Boot).
  */
 @SpringBootApplication
 public class SystemApplication {
 
 	/**
-	 * Starts the application.
+	 * Запускает приложение.
 	 *
-	 * @param args command line arguments passed to Spring Boot
+	 * @param args аргументы командной строки, передаваемые в Spring Boot
 	 */
 	public static void main(String[] args) {
 		SpringApplication.run(SystemApplication.class, args);

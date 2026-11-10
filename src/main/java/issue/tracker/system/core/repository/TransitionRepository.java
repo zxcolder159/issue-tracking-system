@@ -6,61 +6,63 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 /**
- * Transitions — the edges of the workflow graph. One edge is semantically
- * bidirectional: it allows moves between its statuses in both directions.
+ * Переходы — рёбра графа workflow. Одно ребро семантически двунаправленное:
+ * оно разрешает перемещения между своими статусами в обе стороны.
  *
- * <p>Transitions are hard-deleted: when a status is removed from the
- * lifecycle, every touching edge disappears with it.
+ * <p>Переходы удаляются окончательно (hard delete): когда статус удаляют
+ * из lifecycle, каждое касающееся его ребро исчезает вместе с ним.
  */
 public interface TransitionRepository extends JpaRepository<Transition, Long> {
 
     /**
-     * Returns all transitions of the lifecycle.
+     * Возвращает все переходы lifecycle.
      *
-     * @param lifecycleId id of the lifecycle
-     * @return transitions in no particular order
+     * @param lifecycleId id lifecycle
+     * @return переходы без определённого порядка
      */
     List<Transition> findByLifecycleId(Long lifecycleId);
 
     /**
-     * Returns the edges between the two statuses in the given direction.
+     * Возвращает рёбра между двумя статусами в заданном направлении.
      *
-     * @param lifecycleId id of the lifecycle both statuses belong to
-     * @param fromId      id of the source status
-     * @param toId        id of the target status
-     * @return matching edges, empty when the statuses are not connected this way
+     * @param lifecycleId id lifecycle, которому принадлежат оба статуса
+     * @param fromId      id исходного статуса
+     * @param toId        id целевого статуса
+     * @return подходящие рёбра, пусто, когда статусы так не связаны
      */
     List<Transition> findByLifecycleIdAndFromIdAndToId(Long lifecycleId, Long fromId, Long toId);
 
     /**
-     * Returns all edges leaving the status.
+     * Возвращает все рёбра, исходящие из статуса.
      *
-     * @param lifecycleId id of the lifecycle
-     * @param fromId      id of the source status
-     * @return edges with the status as their source
+     * @param lifecycleId id lifecycle
+     * @param fromId      id исходного статуса
+     * @return рёбра, у которых этот статус исходный
      */
     List<Transition> findByLifecycleIdAndFromId(Long lifecycleId, Long fromId);
 
     /**
-     * Returns all edges entering the status.
+     * Возвращает все рёбра, входящие в статус.
      *
-     * @param lifecycleId id of the lifecycle
-     * @param toId        id of the target status
-     * @return edges with the status as their target
+     * @param lifecycleId id lifecycle
+     * @param toId        id целевого статуса
+     * @return рёбра, у которых этот статус целевой
      */
     List<Transition> findByLifecycleIdAndToId(Long lifecycleId, Long toId);
 
     /**
-     * Hard-deletes all edges leaving the status (used when the status is deleted).
+     * Окончательно удаляет все рёбра, исходящие из статуса
+     * (используется при удалении статуса).
      *
-     * @param fromId id of the source status
+     * @param fromId id исходного статуса
      */
     void deleteByFromId(Long fromId);
 
     /**
-     * Hard-deletes all edges entering the status (used when the status is deleted).
+     * Окончательно удаляет все рёбра, входящие в статус
+     * (используется при удалении статуса).
      *
-     * @param toId id of the target status
+     * @param toId id целевого статуса
      */
     void deleteByToId(Long toId);
 }

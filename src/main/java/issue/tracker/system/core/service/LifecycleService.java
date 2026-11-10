@@ -23,13 +23,13 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Lifecycle management: statuses are the ordered columns of the board,
- * transitions are the edges of the workflow graph.
+ * Управление lifecycle: статусы — упорядоченные колонки доски,
+ * переходы — рёбра графа workflow.
  *
- * <p>Transitions are bidirectional: a single edge covers moves between its two
- * statuses in both directions. Statuses are soft-deleted (they keep their
- * issues' history), transitions are hard-deleted together with the statuses
- * they touch.
+ * <p>Переходы двунаправленные: одно ребро покрывает перемещения между своими
+ * двумя статусами в обе стороны. Статусы удаляются через soft delete
+ * (они сохраняют историю своих issues), переходы удаляются окончательно
+ * вместе с касающимися их статусами.
  */
 @Service
 @RequiredArgsConstructor
@@ -42,12 +42,12 @@ public class LifecycleService {
     private final AccessService accessService;
 
     /**
-     * UC-13: returns the lifecycle of the project with its statuses and transitions.
+     * UC-13: возвращает lifecycle проекта со статусами и переходами.
      *
-     * @param actor     the acting user
-     * @param projectId id of the project
-     * @return the lifecycle
-     * @throws NotFoundException when the project has no lifecycle
+     * @param actor     действующий пользователь
+     * @param projectId id проекта
+     * @return lifecycle
+     * @throws NotFoundException когда у проекта нет lifecycle
      */
     @Transactional(readOnly = true)
     public Lifecycle getLifecycle(User actor, Long projectId) {
@@ -56,12 +56,12 @@ public class LifecycleService {
     }
 
     /**
-     * Returns the non-deleted statuses of the project in board order; the
-     * first one receives newly created issues.
+     * Возвращает неудалённые статусы проекта в порядке на доске; в первый
+     * попадают новые issues.
      *
-     * @param actor     the acting user
-     * @param projectId id of the project
-     * @return ordered statuses, empty when the lifecycle has none
+     * @param actor     действующий пользователь
+     * @param projectId id проекта
+     * @return упорядоченные статусы, пусто, когда у lifecycle их нет
      */
     @Transactional(readOnly = true)
     public List<Status> getStatuses(User actor, Long projectId) {
@@ -70,19 +70,19 @@ public class LifecycleService {
     }
 
     /**
-     * UC-14: creates a status. The new status always becomes the last column
-     * of the board; optionally it is connected to the given statuses with
-     * transitions allowed to the given roles.
+     * UC-14: создаёт статус. Новый статус всегда становится последней колонкой
+     * доски; опционально он связывается с указанными статусами переходами,
+     * разрешёнными указанным ролям.
      *
-     * @param actor            the acting user, must be Project Lead or admin
-     * @param projectId        id of the project
-     * @param name             non-blank name of the new status
-     * @param connectToStatusIds ids of statuses to connect with transitions,
-     *                           may be {@code null} or empty for none
-     * @param allowedRoles     roles allowed to use the created transitions,
-     *                         may be {@code null} for «nobody yet»
-     * @return the saved status
-     * @throws RuleViolationException when the name is blank
+     * @param actor            действующий пользователь, должен быть Project Lead или admin
+     * @param projectId        id проекта
+     * @param name             непустое название нового статуса
+     * @param connectToStatusIds id статусов, с которыми создать переходы,
+     *                           может быть {@code null} или пустым — тогда переходов нет
+     * @param allowedRoles     роли, которым разрешено пользоваться созданными переходами,
+     *                         может быть {@code null} для «пока никого»
+     * @return сохранённый статус
+     * @throws RuleViolationException когда название пустое
      */
     @Transactional
     public Status createStatus(User actor, Long projectId, String name,
@@ -117,17 +117,17 @@ public class LifecycleService {
     }
 
     /**
-     * UC-17: adds an edge between two statuses. The edge works in both
-     * directions; the same pair of statuses may be connected only once.
+     * UC-17: добавляет ребро между двумя статусами. Ребро работает в обе
+     * стороны; одна и та же пара статусов может быть связана только один раз.
      *
-     * @param actor         the acting user, must be Project Lead or admin
-     * @param projectId     id of the project
-     * @param fromStatusId  id of the first status
-     * @param toStatusId    id of the second status
-     * @param allowedRoles  non-empty set of roles allowed to move issues along the edge
-     * @return the saved transition
-     * @throws RuleViolationException when the roles are empty, the statuses
-     *         coincide or the pair is already connected in either direction
+     * @param actor         действующий пользователь, должен быть Project Lead или admin
+     * @param projectId     id проекта
+     * @param fromStatusId  id первого статуса
+     * @param toStatusId    id второго статуса
+     * @param allowedRoles  непустое множество ролей, которым разрешено перемещать issues по ребру
+     * @return сохранённый переход
+     * @throws RuleViolationException когда роли пусты, статусы совпадают
+     *         или пара уже связана в любом из направлений
      */
     @Transactional
     public Transition addTransition(User actor, Long projectId, Long fromStatusId, Long toStatusId,
@@ -155,14 +155,14 @@ public class LifecycleService {
     }
 
     /**
-     * UC-18: replaces the set of roles allowed to use the transition.
+     * UC-18: заменяет множество ролей, которым разрешён переход.
      *
-     * @param actor         the acting user, must be Project Lead or admin
-     * @param projectId     id of the project the transition belongs to
-     * @param transitionId  id of the transition
-     * @param allowedRoles  non-empty set of new roles
-     * @return the updated transition
-     * @throws RuleViolationException when the roles are empty
+     * @param actor         действующий пользователь, должен быть Project Lead или admin
+     * @param projectId     id проекта, которому принадлежит переход
+     * @param transitionId  id перехода
+     * @param allowedRoles  непустое множество новых ролей
+     * @return обновлённый переход
+     * @throws RuleViolationException когда роли пусты
      */
     @Transactional
     public Transition updateTransitionRoles(User actor, Long projectId, Long transitionId,
@@ -177,12 +177,12 @@ public class LifecycleService {
     }
 
     /**
-     * UC-19: removes the edge. Issues already sitting in the two statuses stay
-     * exactly where they are.
+     * UC-19: удаляет ребро. Issues, уже лежащие в этих двух статусах,
+     * остаются ровно на месте.
      *
-     * @param actor        the acting user, must be Project Lead or admin
-     * @param projectId    id of the project the transition belongs to
-     * @param transitionId id of the transition to remove
+     * @param actor        действующий пользователь, должен быть Project Lead или admin
+     * @param projectId    id проекта, которому принадлежит переход
+     * @param transitionId id удаляемого перехода
      */
     @Transactional
     public void deleteTransition(User actor, Long projectId, Long transitionId) {
@@ -192,19 +192,19 @@ public class LifecycleService {
     }
 
     /**
-     * UC-20: soft-deletes the status together with its board column, moves its
-     * active issues to the chosen migration target and hard-deletes every
-     * transition touching the status. When the first column is deleted, new
-     * issues start landing in the next status automatically.
+     * UC-20: удаляет статус через soft delete вместе с его колонкой доски,
+     * переносит его активные issues в выбранный целевой статус и окончательно
+     * удаляет каждый переход, касающийся статуса. Когда удалена первая колонка,
+     * новые issues автоматически начинают попадать в следующий статус.
      *
-     * @param actor             the acting user, must be Project Lead or admin
-     * @param projectId         id of the project
-     * @param statusId          id of the status to delete
-     * @param migrationTargetId id of the status to move the issues to; may be
-     *                          {@code null} only when the status holds no issues
-     * @throws RuleViolationException when this is the last remaining status of
-     *         the lifecycle, the status holds issues but no target is given, or
-     *         the target is the deleted status itself
+     * @param actor             действующий пользователь, должен быть Project Lead или admin
+     * @param projectId         id проекта
+     * @param statusId          id удаляемого статуса
+     * @param migrationTargetId id статуса, в который перенести issues; может быть
+     *                          {@code null}, только когда в статусе нет issues
+     * @throws RuleViolationException когда это последний оставшийся статус
+     *         lifecycle, в статусе есть issues, а цель не указана, или
+     *         цель — сам удаляемый статус
      */
     @Transactional
     public void deleteStatus(User actor, Long projectId, Long statusId, Long migrationTargetId) {
@@ -234,13 +234,13 @@ public class LifecycleService {
     }
 
     /**
-     * Returns the edge between the two statuses in both directions, empty when
-     * the statuses are not connected.
+     * Возвращает ребро между двумя статусами в обоих направлениях, пусто,
+     * когда статусы не связаны.
      *
-     * @param lifecycleId id of the lifecycle both statuses belong to
-     * @param statusAId   id of the first status
-     * @param statusBId   id of the second status
-     * @return all edges connecting the statuses either way
+     * @param lifecycleId id lifecycle, которому принадлежат оба статуса
+     * @param statusAId   id первого статуса
+     * @param statusBId   id второго статуса
+     * @return все рёбра, связывающие статусы в любом направлении
      */
     List<Transition> findEdge(Long lifecycleId, Long statusAId, Long statusBId) {
         List<Transition> edge = new ArrayList<>(

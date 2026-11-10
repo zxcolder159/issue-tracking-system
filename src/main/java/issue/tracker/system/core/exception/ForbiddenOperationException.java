@@ -1,15 +1,15 @@
 package issue.tracker.system.core.exception;
 
 /**
- * Thrown when the acting user lacks the rights for the operation: they are
- * not a member of the project, or their role (Developer, QA) does not allow it.
+ * Выбрасывается, когда у действующего пользователя нет прав на операцию:
+ * он не участник проекта либо его роль (Developer, QA) этого не позволяет.
  */
 public class ForbiddenOperationException extends DomainException {
 
     /**
-     * Creates the exception.
+     * Создаёт исключение.
      *
-     * @param message human-readable explanation shown to the user
+     * @param message человекочитаемое объяснение для пользователя
      */
     public ForbiddenOperationException(String message) {
         super(message);

@@ -1,16 +1,16 @@
 package issue.tracker.system.core.exception;
 
 /**
- * Thrown when an operation breaks a domain rule: a duplicate transition edge,
- * a due date before the start date, deletion of the last lifecycle status,
- * an assignee outside the project and similar violations.
+ * Выбрасывается, когда операция нарушает доменное правило: дублирующее ребро
+ * перехода, срок завершения раньше даты начала, удаление последнего статуса
+ * lifecycle, assignee вне проекта и подобные нарушения.
  */
 public class RuleViolationException extends DomainException {
 
     /**
-     * Creates the exception.
+     * Создаёт исключение.
      *
-     * @param message human-readable explanation shown to the user
+     * @param message человекочитаемое объяснение для пользователя
      */
     public RuleViolationException(String message) {
         super(message);

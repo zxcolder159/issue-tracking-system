@@ -1,11 +1,11 @@
 package issue.tracker.system.core.model;
 
-/** System-wide role of an account, independent of any project. */
+/** Роль аккаунта в масштабе системы, не зависящая от проектов. */
 public enum SystemRole {
 
-    /** The single system administrator; holds Project Lead rights in every project. */
+    /** Единственный администратор системы; имеет права Project Lead в каждом проекте. */
     ADMIN,
 
-    /** A regular account; project rights come from memberships. */
+    /** Обычный аккаунт; права в проектах определяются его участия. */
     USER
 }

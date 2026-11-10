@@ -8,8 +8,8 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 /**
- * Smoke test: the Spring context starts against a real PostgreSQL instance
- * started by Testcontainers (see the tech-stack document).
+ * Smoke-тест: контекст Spring поднимается на реальном экземпляре PostgreSQL,
+ * запущенном через Testcontainers (см. документ tech-stack).
  */
 @Testcontainers
 @SpringBootTest

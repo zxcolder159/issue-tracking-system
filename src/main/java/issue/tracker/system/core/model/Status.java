@@ -19,8 +19,8 @@ import lombok.Setter;
 import java.time.Instant;
 
 /**
- * A status of a lifecycle — one column of the board. The status with the
- * lowest {@link #order} receives newly created issues.
+ * Статус lifecycle — одна колонка доски. Статус с наименьшим
+ * {@link #order} получает вновь созданные issues.
  */
 @Getter
 @Setter
@@ -39,7 +39,7 @@ public class Status {
     @Column(nullable = false)
     private String name;
 
-    /** Position of the column on the board; lower values come first. */
+    /** Позиция колонки на доске; меньшие значения идут раньше. */
     @Column(name = "sort_order", nullable = false)
     private Integer order;
 
@@ -47,7 +47,7 @@ public class Status {
     @JoinColumn(name = "lifecycle_id", nullable = false)
     private Lifecycle lifecycle;
 
-    /** Soft delete marker; non-null means the column is removed from the board. */
+    /** Признак soft delete; не null означает, что колонка удалена с доски. */
     private Instant deletedAt;
 
 }

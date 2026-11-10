@@ -34,8 +34,8 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 /**
- * Unit tests for {@link IssueService}: creation in the first status, the
- * permission matrix for edit and status changes, and trash visibility rules.
+ * Unit-тесты для {@link IssueService}: создание в первом статусе, матрица прав
+ * для редактирования и смены статусов и правила видимости корзины.
  */
 @ExtendWith(MockitoExtension.class)
 class IssueServiceTest {

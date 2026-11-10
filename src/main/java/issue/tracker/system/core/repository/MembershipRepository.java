@@ -7,21 +7,21 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 
 /**
- * Memberships of users in projects with their per-project roles.
+ * Участия пользователей в проектах с их ролями внутри каждого проекта.
  *
- * <p>Soft-deleted memberships (removed members) are never returned: a removed
- * member loses access to the project immediately, while the issues they
- * created keep pointing at the membership.
+ * <p>Участия в состоянии soft delete (исключённые участники) никогда
+ * не возвращаются: исключённый участник теряет доступ к проекту сразу,
+ * а созданные им issues продолжают ссылаться на это участие.
  */
 public interface MembershipRepository extends JpaRepository<Membership, Long> {
 
     /**
-     * Returns the active membership of the user in the project.
+     * Возвращает активное участие пользователя в проекте.
      *
-     * @param userId    id of the user
-     * @param projectId id of the project
-     * @return the membership with user and project fetched, empty when the user
-     *         is not an active member of the project
+     * @param userId    id пользователя
+     * @param projectId id проекта
+     * @return участие с подгруженными user и project, пусто, когда пользователь
+     *         не является активным участником проекта
      */
     @EntityGraph(attributePaths = {"user", "project"})
     Optional<Membership> findByUserIdAndProjectIdAndDeletedAtNull(Long userId, Long projectId);

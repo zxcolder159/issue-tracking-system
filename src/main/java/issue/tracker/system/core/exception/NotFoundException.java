@@ -1,15 +1,15 @@
 package issue.tracker.system.core.exception;
 
 /**
- * Thrown when a requested entity (project, lifecycle, status, transition,
- * issue, membership) does not exist or has been soft-deleted.
+ * Выбрасывается, когда запрошенная сущность (проект, lifecycle, статус,
+ * переход, issue, участие) не существует или удалена через soft delete.
  */
 public class NotFoundException extends DomainException {
 
     /**
-     * Creates the exception.
+     * Создаёт исключение.
      *
-     * @param message human-readable explanation shown to the user
+     * @param message человекочитаемое объяснение для пользователя
      */
     public NotFoundException(String message) {
         super(message);

@@ -16,8 +16,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * A registered account. Global rights come from {@link #systemRole}; rights
- * inside a project come from the user's {@link Membership memberships}.
+ * Зарегистрированный аккаунт. Глобальные права задаёт {@link #systemRole}; права
+ * внутри проекта определяются {@link Membership memberships} пользователя.
  */
 @Getter
 @Setter
@@ -33,19 +33,19 @@ public class User {
     @SequenceGenerator(name = "user_seq_gen", sequenceName = "user_seq")
     private Long id;
 
-    /** Display name shown to other users. */
+    /** Отображаемое имя, которое видят другие пользователи. */
     @Column(nullable = false)
     private String name;
 
-    /** Login identifier, unique across the system. */
+    /** Логин, уникальный в масштабе системы. */
     @Column(nullable = false, unique = true)
     private String email;
 
-    /** Password hash, never the plain password. */
+    /** Хеш пароля, но не сам пароль в открытом виде. */
     @Column(nullable = false)
     private String password;
 
-    /** System-wide role; the admin acts as Project Lead in every project. */
+    /** Роль в масштабе системы; Admin действует как Project Lead в каждом проекте. */
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private SystemRole systemRole;

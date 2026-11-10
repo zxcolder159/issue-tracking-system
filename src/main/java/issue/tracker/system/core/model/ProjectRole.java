@@ -1,17 +1,17 @@
 package issue.tracker.system.core.model;
 
 /**
- * Role of a user inside one project. The same user may hold different roles
- * in different projects.
+ * Роль пользователя внутри одного проекта. Один пользователь может иметь
+ * разные роли в разных проектах.
  */
 public enum ProjectRole {
 
-    /** Works with the issues they created themselves. */
+    /** Работает с issues, которые создал сам. */
     DEVELOPER,
 
-    /** Same rights as {@link #DEVELOPER}. */
+    /** Те же права, что у {@link #DEVELOPER}. */
     QA,
 
-    /** Manages members and lifecycle, works with any issue of the project. */
+    /** Управляет участниками и lifecycle, работает с любым issue проекта. */
     PROJECT_LEAD
 }

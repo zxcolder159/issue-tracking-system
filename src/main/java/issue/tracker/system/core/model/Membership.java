@@ -22,13 +22,13 @@ import lombok.Setter;
 import java.time.Instant;
 
 /**
- * Membership of a user in a project with a per-project role. The same person
- * may hold different roles in different projects.
+ * Участие пользователя в проекте с ролью в рамках этого проекта. Один человек
+ * может иметь разные роли в разных проектах.
  *
- * <p>Removing a member is a soft delete: the user loses access immediately,
- * but the issues they created keep pointing at this membership. Because of the
- * unique constraint on (user, project) a removed member is added back by
- * reactivating the same row, not by inserting a new one.
+ * <p>Удаление участника — soft delete: пользователь теряет доступ сразу,
+ * но созданные им issues продолжают ссылаться на это участие. Из-за
+ * уникального ограничения на (user, project) удалённый участник возвращается
+ * повторной активацией той же строки, а не вставкой новой.
  */
 @Getter
 @Setter
@@ -52,11 +52,11 @@ public class Membership {
     @JoinColumn(name = "project_id", nullable = false)
     private Project project;
 
-    /** Rights of the user inside this particular project. */
+    /** Права пользователя внутри данного проекта. */
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ProjectRole role;
 
-    /** Soft delete marker; non-null means the user was removed from the project. */
+    /** Признак soft delete; не null означает, что пользователь удалён из проекта. */
     private Instant deletedAt;
 }

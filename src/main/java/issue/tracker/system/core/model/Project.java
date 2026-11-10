@@ -17,8 +17,8 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.time.Instant;
 
 /**
- * A project — an isolated space with its own members, roles and lifecycle.
- * Deletion is soft: members lose access immediately, the data stays.
+ * Проект — изолированное пространство со своими участниками, ролями и lifecycle.
+ * Удаление — soft delete: участники теряют доступ сразу, данные остаются.
  */
 @Getter
 @Setter
@@ -40,11 +40,11 @@ public class Project {
     @Column(columnDefinition = "text")
     private String description;
 
-    /** Set automatically on the first insert, never changes afterwards. */
+    /** Проставляется автоматически при первой вставке и больше не меняется. */
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
-    /** Soft delete marker; non-null means the project is deleted. */
+    /** Признак soft delete; не null означает, что проект удалён. */
     private Instant deletedAt;
 }

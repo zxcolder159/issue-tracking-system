@@ -20,9 +20,9 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.time.Instant;
 
 /**
- * A work item of a project. Author and assignee are memberships (a user in a
- * project), so they keep their meaning even after the assignee leaves the
- * project. Deletion is a soft delete: the issue goes to the trash for 7 days.
+ * Рабочий элемент проекта. Автор и assignee — участия (пользователь в
+ * проекте), поэтому сохраняют смысл даже после того, как assignee покидает
+ * проект. Удаление — soft delete: issue попадает в корзину на 7 дней.
  */
 @Getter
 @Setter
@@ -41,31 +41,31 @@ public class Issue {
     @Column(nullable = false)
     private String title;
 
-    /** Free-form description with limited Markdown (bold, italic, links). */
+    /** Свободное описание с ограниченным Markdown (жирный, курсив, ссылки). */
     @Column(columnDefinition = "text")
     private String description;
 
-    /** Type value (Bug, Task, Story...); the vocabulary is a per-customer question. */
+    /** Значение типа (Bug, Task, Story...); словарь значений — вопрос конкретного заказчика. */
     @Column(nullable = false)
     private String type;
 
-    /** Priority value (Critical, High...); the vocabulary is a per-customer question. */
+    /** Значение приоритета (Critical, High...); словарь значений — вопрос конкретного заказчика. */
     @Column(nullable = false)
     private String priority;
 
-    /** Start of the work window; {@link #dueDate} must not precede it. */
+    /** Начало рабочего окна; {@link #dueDate} не может быть раньше него. */
     @Column(nullable = false)
     private Instant startDate;
 
     @Column(nullable = false)
     private Instant dueDate;
 
-    /** Membership of the user who created the issue; defines edit rights for Developer and QA. */
+    /** Участие пользователя, создавшего issue; определяет права на редактирование для Developer и QA. */
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "author_id", nullable = false)
     private Membership author;
 
-    /** Membership of the user the issue is assigned to; optional. */
+    /** Участие пользователя, на которого назначен issue; необязательное. */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "assignee_id")
     private Membership assignee;
@@ -74,16 +74,16 @@ public class Issue {
     @JoinColumn(name = "project_id", nullable = false)
     private Project project;
 
-    /** Current column of the board; changes only along allowed transitions. */
+    /** Текущая колонка доски; меняется только по допустимым переходам. */
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "status_id", nullable = false)
     private Status status;
 
-    /** Set automatically on the first insert, never changes afterwards. */
+    /** Проставляется автоматически при первой вставке и больше не меняется. */
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
-    /** Soft delete marker; non-null means the issue is in the trash. */
+    /** Признак soft delete; не null означает, что issue находится в корзине. */
     private Instant deletedAt;
 }

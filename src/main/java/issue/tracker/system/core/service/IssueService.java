@@ -24,13 +24,13 @@ import java.time.Instant;
 import java.util.List;
 
 /**
- * Issue operations for the board, the list and the gantt view.
+ * Операции с issues для доски, списка и диаграммы Ганта.
  *
- * <p>Core rules: a new issue always lands in the first lifecycle status and
- * its author is the acting member's membership; a status change must follow a
- * transition edge allowed to the actor's effective project role (edges work in
- * both directions); deletion is a soft delete — the issue goes to the trash
- * and can be restored while its original status still exists.
+ * <p>Основные правила: новая issue всегда попадает в первый статус lifecycle,
+ * а её автор — участие действующего участника; смена статуса должна идти
+ * по ребру перехода, разрешённому эффективной роли actor в проекте (рёбра
+ * работают в обе стороны); удаление — это soft delete: issue уходит в корзину
+ * и может быть восстановлена, пока её исходный статус ещё существует.
  */
 @Service
 @RequiredArgsConstructor
@@ -44,14 +44,14 @@ public class IssueService {
     private final AccessService accessService;
 
     /**
-     * UC-21, UC-22, UC-23, UC-25: returns the active (not trashed) issues of
-     * the project with optional filters. The same result feeds the board, the
-     * list and the gantt view.
+     * UC-21, UC-22, UC-23, UC-25: возвращает активные (не в корзине) issues
+     * проекта с необязательными фильтрами. Один и тот же результат идёт
+     * на доску, в список и в диаграмму Ганта.
      *
-     * @param actor     the acting user, any project member or the admin
-     * @param projectId id of the project
-     * @param filter    optional filters, {@code null} is treated as «no filters»
-     * @return matching issues ordered by due date, then by id
+     * @param actor     действующий пользователь, любой участник проекта или admin
+     * @param projectId id проекта
+     * @param filter    необязательные фильтры, {@code null} трактуется как «без фильтров»
+     * @return подходящие issues, упорядоченные по due date, затем по id
      */
     @Transactional(readOnly = true)
     public List<Issue> findIssues(User actor, Long projectId, Filter filter) {
@@ -63,12 +63,12 @@ public class IssueService {
     }
 
     /**
-     * UC-24: returns a single active issue with all its fields.
+     * UC-24: возвращает одну активную issue со всеми её полями.
      *
-     * @param actor   the acting user, any project member or the admin
-     * @param issueId id of the issue
-     * @return the issue
-     * @throws NotFoundException when the issue does not exist or is in the trash
+     * @param actor   действующий пользователь, любой участник проекта или admin
+     * @param issueId id issue
+     * @return issue
+     * @throws NotFoundException когда issue не существует или лежит в корзине
      */
     @Transactional(readOnly = true)
     public Issue getIssue(User actor, Long issueId) {
@@ -78,19 +78,19 @@ public class IssueService {
     }
 
     /**
-     * UC-26: creates the issue in the first status of the project lifecycle;
-     * the acting member becomes the author.
+     * UC-26: создаёт issue в первом статусе lifecycle проекта; автором
+     * становится действующий участник.
      *
-     * @param actor   the acting user, must be an active project member (also
-     *                for the admin: an issue cannot exist without an author
-     *                membership)
-     * @param command fields of the new issue; title, type, priority and both
-     *                dates are required, assignee is optional
-     * @return the saved issue
-     * @throws ForbiddenOperationException when the actor is not an active member
-     * @throws RuleViolationException when the title, type or priority is blank,
-     *         the due date precedes the start date, the assignee is not a
-     *         project member or the lifecycle has no statuses
+     * @param actor   действующий пользователь, должен быть активным участником
+     *                проекта (в том числе для admin: issue не может существовать
+     *                без авторского участия)
+     * @param command поля новой issue; title, type, priority и обе даты
+     *                обязательны, assignee необязателен
+     * @return сохранённая issue
+     * @throws ForbiddenOperationException когда actor не активный участник
+     * @throws RuleViolationException когда title, type или priority пусты,
+     *         due date раньше start date, assignee не участник проекта
+     *         или в lifecycle нет статусов
      */
     @Transactional
     public Issue create(User actor, CreateCommand command) {
@@ -128,18 +128,19 @@ public class IssueService {
     }
 
     /**
-     * UC-27: partial update of the issue. {@code null} fields are left
-     * unchanged; dates are validated as a combination of old and new values;
-     * a status change must follow the transition rules for the actor's role.
+     * UC-27: частичное обновление issue. Поля со значением {@code null}
+     * остаются без изменений; даты проверяются как комбинация старых
+     * и новых значений; смена статуса должна следовать правилам перехода
+     * для роли actor.
      *
-     * @param actor   the acting user: Project Lead and admin may edit any
-     *                issue, Developer and QA only their own
-     * @param issueId id of the issue
-     * @param command fields to change, {@code null} means «keep the current value»
-     * @return the updated issue
-     * @throws RuleViolationException when a blank title is passed, the merged
-     *         dates are inconsistent, the assignee is not a project member or
-     *         the status change violates the transition rules
+     * @param actor   действующий пользователь: Project Lead и admin могут
+     *                изменять любую issue, Developer и QA — только свою
+     * @param issueId id issue
+     * @param command поля для изменения, {@code null} означает «оставить текущее значение»
+     * @return обновлённая issue
+     * @throws RuleViolationException когда передан пустой title, объединённые
+     *         даты противоречивы, assignee не участник проекта или смена
+     *         статуса нарушает правила переходов
      */
     @Transactional
     public Issue edit(User actor, Long issueId, EditCommand command) {
@@ -175,17 +176,17 @@ public class IssueService {
     }
 
     /**
-     * UC-29: moves the issue to the target status along a transition edge
-     * allowed to the actor's effective project role. Edges work in both
-     * directions, so the move may follow the edge either way.
+     * UC-29: перемещает issue в целевой статус по ребру перехода, разрешённому
+     * эффективной роли actor в проекте. Рёбра работают в обе стороны,
+     * поэтому перемещение может идти по ребру в любом направлении.
      *
-     * @param actor          the acting user: Project Lead and admin may move
-     *                       any issue, Developer and QA only their own
-     * @param issueId        id of the issue
-     * @param targetStatusId id of the target status within the same lifecycle
-     * @return the updated issue
-     * @throws RuleViolationException when the statuses are not connected by an
-     *         edge or the actor's role is not allowed to use it
+     * @param actor          действующий пользователь: Project Lead и admin могут
+     *                       перемещать любую issue, Developer и QA — только свою
+     * @param issueId        id issue
+     * @param targetStatusId id целевого статуса в том же lifecycle
+     * @return обновлённая issue
+     * @throws RuleViolationException когда статусы не связаны ребром
+     *         или роль actor не может им пользоваться
      */
     @Transactional
     public Issue changeStatus(User actor, Long issueId, Long targetStatusId) {
@@ -196,13 +197,13 @@ public class IssueService {
     }
 
     /**
-     * UC-30: soft delete — the issue disappears from the board and the list
-     * and goes to the trash.
+     * UC-30: soft delete — issue исчезает с доски и из списка
+     * и попадает в корзину.
      *
-     * @param actor   the acting user: Project Lead and admin may trash any
-     *                issue, Developer and QA only their own
-     * @param issueId id of the issue
-     * @return the updated issue with {@code deletedAt} set
+     * @param actor   действующий пользователь: Project Lead и admin могут
+     *                отправить в корзину любую issue, Developer и QA — только свою
+     * @param issueId id issue
+     * @return обновлённая issue с установленным {@code deletedAt}
      */
     @Transactional
     public Issue moveToTrash(User actor, Long issueId) {
@@ -213,12 +214,12 @@ public class IssueService {
     }
 
     /**
-     * UC-31: trashed issues of the project. Developer and QA see only the
-     * issues they created themselves, Project Lead and the admin see all.
+     * UC-31: issues проекта в корзине. Developer и QA видят только созданные
+     * ими issues, Project Lead и admin — все.
      *
-     * @param actor     the acting user, any project member or the admin
-     * @param projectId id of the project
-     * @return trashed issues visible to the actor
+     * @param actor     действующий пользователь, любой участник проекта или admin
+     * @param projectId id проекта
+     * @return issues в корзине, видимые actor
      */
     @Transactional(readOnly = true)
     public List<Issue> trash(User actor, Long projectId) {
@@ -233,20 +234,19 @@ public class IssueService {
     }
 
     /**
-     * UC-32: restores the issue from the trash back onto the board, into its
-     * original status with all fields intact. When the original status has
-     * been deleted from the lifecycle, a target status of the same lifecycle
-     * must be provided instead.
+     * UC-32: возвращает issue из корзины обратно на доску, в её исходный
+     * статус со всеми полями. Когда исходный статус удалён из lifecycle,
+     * вместо него нужно передать целевой статус того же lifecycle.
      *
-     * @param actor          the acting user: Project Lead and admin may restore
-     *                       any issue, Developer and QA only their own
-     * @param issueId        id of the trashed issue
-     * @param targetStatusId fallback status for the case when the original one
-     *                       no longer exists, {@code null} keeps the original
-     * @return the restored issue
-     * @throws RuleViolationException when the issue is not in the trash, its
-     *         original status is gone but no target is given, or the target
-     *         belongs to another lifecycle
+     * @param actor          действующий пользователь: Project Lead и admin могут
+     *                       восстановить любую issue, Developer и QA — только свою
+     * @param issueId        id issue в корзине
+     * @param targetStatusId запасной статус на случай, когда исходного больше
+     *                       нет, {@code null} оставляет исходный
+     * @return восстановленная issue
+     * @throws RuleViolationException когда issue не в корзине, её исходный
+     *         статус удалён, а цель не указана, или цель принадлежит
+     *         другому lifecycle
      */
     @Transactional
     public Issue restore(User actor, Long issueId, Long targetStatusId) {
@@ -332,19 +332,19 @@ public class IssueService {
     }
 
     /**
-     * Optional filters for the board, list and gantt views (UC-22).
+     * Необязательные фильтры для доски, списка и диаграммы Ганта (UC-22).
      *
-     * @param assigneeUserId filter by the assignee's user id
-     * @param priority       filter by the exact priority value
-     * @param type           filter by the exact type value
-     * @param titleLike      case-insensitive substring of the title
+     * @param assigneeUserId фильтр по id пользователя-assignee
+     * @param priority       фильтр по точному значению priority
+     * @param type           фильтр по точному значению type
+     * @param titleLike      подстрока заголовка без учёта регистра
      */
     public record Filter(Long assigneeUserId, String priority, String type, String titleLike) {
 
         /**
-         * A filter that matches everything.
+         * Фильтр, которому подходит всё.
          *
-         * @return a filter with all fields set to {@code null}
+         * @return фильтр со всеми полями {@code null}
          */
         public static Filter none() {
             return new Filter(null, null, null, null);
@@ -352,33 +352,33 @@ public class IssueService {
     }
 
     /**
-     * Fields of a new issue (UC-26).
+     * Поля новой issue (UC-26).
      *
-     * @param projectId      project to create the issue in
-     * @param title          required title
-     * @param description    optional free-form description
-     * @param type           required type value
-     * @param priority       required priority value
-     * @param startDate      required start of the work window
-     * @param dueDate        required end of the work window, must not precede the start
-     * @param assigneeUserId optional assignee, must be an active project member
+     * @param projectId      проект, в котором создаётся issue
+     * @param title          обязательный заголовок
+     * @param description    необязательное описание в свободной форме
+     * @param type           обязательное значение type
+     * @param priority       обязательное значение priority
+     * @param startDate      обязательное начало рабочего окна
+     * @param dueDate        обязательный конец рабочего окна, не раньше начала
+     * @param assigneeUserId необязательный assignee, должен быть активным участником проекта
      */
     public record CreateCommand(Long projectId, String title, String description, String type,
                                 String priority, Instant startDate, Instant dueDate, Long assigneeUserId) {
     }
 
     /**
-     * Partial update of an issue (UC-27). Every field is applied only when it
-     * is not {@code null}; untouched fields keep their current values.
+     * Частичное обновление issue (UC-27). Каждое поле применяется, только если
+     * оно не {@code null}; нетронутые поля сохраняют текущие значения.
      *
-     * @param title          new title
-     * @param description    new description
-     * @param type           new type value
-     * @param priority       new priority value
-     * @param startDate      new start date
-     * @param dueDate        new due date
-     * @param assigneeUserId new assignee, an active project member
-     * @param targetStatusId new status, must be reachable along an allowed transition
+     * @param title          новый заголовок
+     * @param description    новое описание
+     * @param type           новое значение type
+     * @param priority       новое значение priority
+     * @param startDate      новая дата начала
+     * @param dueDate        новая дата окончания
+     * @param assigneeUserId новый assignee, активный участник проекта
+     * @param targetStatusId новый статус, должен быть достижим по разрешённому переходу
      */
     public record EditCommand(String title, String description, String type, String priority,
                               Instant startDate, Instant dueDate, Long assigneeUserId, Long targetStatusId) {

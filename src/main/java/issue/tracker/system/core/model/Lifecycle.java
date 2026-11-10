@@ -21,9 +21,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The workflow graph of a project: ordered statuses (board columns) plus the
- * transitions between them (allowed moves). Exactly one lifecycle per project;
- * the board is a rendering of this graph.
+ * Граф процесса проекта: упорядоченные статусы (колонки доски) и переходы
+ * между ними (допустимые перемещения). У проекта ровно один lifecycle;
+ * board — отображение этого графа.
  */
 @Getter
 @NoArgsConstructor
@@ -38,19 +38,19 @@ public class Lifecycle {
     @SequenceGenerator(name = "lifecycle_seq_gen", sequenceName = "lifecycle_seq")
     private Long id;
 
-    /** Owning project; unique, so one project has exactly one lifecycle. */
+    /** Проект-владелец; уникален, поэтому у проекта ровно один lifecycle. */
     @OneToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "project_id", nullable = false, unique = true)
     private Project project;
 
-    /** Board columns in board order; soft-deleted statuses are filtered out. */
+    /** Колонки доски в порядке на доске; статусы, удалённые через soft delete, отфильтрованы. */
     @Builder.Default
     @OneToMany(mappedBy = "lifecycle")
     @OrderBy("order ASC, id ASC")
     @SQLRestriction("deleted_at IS NULL")
     private List<Status> statuses = new ArrayList<>();
 
-    /** Edges of the workflow graph; deleted together with the statuses they touch. */
+    /** Рёбра графа процесса; удаляются вместе со статусами, которых касаются. */
     @Builder.Default
     @OneToMany(mappedBy = "lifecycle")
     private List<Transition> transitions = new ArrayList<>();

@@ -11,13 +11,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 /**
- * Central place for permission checks.
+ * Центральное место проверок прав доступа.
  *
- * <p>Rights are resolved in the context of a project, never globally: the same
- * user may be Project Lead in one project and Developer in another. The system
- * admin implicitly holds Project Lead rights in every project, even without a
- * membership. Project Lead may change any issue, Developer and QA only the
- * issues they created themselves.
+ * <p>Права определяются в контексте конкретного проекта, а не глобально:
+ * один и тот же пользователь может быть Project Lead в одном проекте
+ * и Developer в другом. Системный Admin неявно обладает правами Project Lead
+ * в каждом проекте, даже без участия в нём. Project Lead может изменять
+ * любую issue, Developer и QA — только созданные ими сами.
  */
 @Service
 @RequiredArgsConstructor
@@ -26,13 +26,13 @@ public class AccessService {
     private final MembershipRepository membershipRepository;
 
     /**
-     * Returns the active membership of the user in the project.
+     * Возвращает активное участие пользователя в проекте.
      *
-     * @param actor     the acting user
-     * @param projectId id of the project
-     * @return the membership carrying the user's project role
-     * @throws ForbiddenOperationException when the user is not an active member
-     *         (memberships with {@code deletedAt} set are ignored)
+     * @param actor     действующий пользователь
+     * @param projectId id проекта
+     * @return участие, в котором хранится роль пользователя в проекте
+     * @throws ForbiddenOperationException когда пользователь не активный участник
+     *         (участия с установленным {@code deletedAt} игнорируются)
      */
     public Membership requireMember(User actor, Long projectId) {
         return membershipRepository.findByUserIdAndProjectIdAndDeletedAtNull(actor.getId(), projectId)
@@ -41,12 +41,12 @@ public class AccessService {
     }
 
     /**
-     * Checks that the actor may read project content: any project member or
-     * the system admin.
+     * Проверяет, что actor может читать содержимое проекта: любой участник
+     * проекта или системный Admin.
      *
-     * @param actor     the acting user
-     * @param projectId id of the project
-     * @throws ForbiddenOperationException when the actor is neither a member nor the admin
+     * @param actor     действующий пользователь
+     * @param projectId id проекта
+     * @throws ForbiddenOperationException когда actor не участник и не admin
      */
     public void requireProjectAccess(User actor, Long projectId) {
         if (actor.getSystemRole() == SystemRole.ADMIN) {
@@ -56,12 +56,12 @@ public class AccessService {
     }
 
     /**
-     * Checks Project Lead rights: either the membership role or the system admin.
+     * Проверяет права Project Lead: либо роль участия, либо системный Admin.
      *
-     * @param actor     the acting user
-     * @param projectId id of the project
-     * @throws ForbiddenOperationException when the actor is not the admin and
-     *         their project role differs from {@code PROJECT_LEAD}
+     * @param actor     действующий пользователь
+     * @param projectId id проекта
+     * @throws ForbiddenOperationException когда actor не admin, а его роль
+     *         в проекте отличается от {@code PROJECT_LEAD}
      */
     public void requireLead(User actor, Long projectId) {
         if (actor.getSystemRole() == SystemRole.ADMIN) {
@@ -75,13 +75,13 @@ public class AccessService {
     }
 
     /**
-     * Returns the effective role of the actor in the project; the admin always
-     * acts as Project Lead, even without a membership.
+     * Возвращает эффективную роль actor в проекте; admin всегда действует
+     * как Project Lead, даже без участия в проекте.
      *
-     * @param actor     the acting user
-     * @param projectId id of the project
-     * @return the role the actor's permissions are based on
-     * @throws ForbiddenOperationException when the actor is a non-member and not the admin
+     * @param actor     действующий пользователь
+     * @param projectId id проекта
+     * @return роль, на которой основаны права actor
+     * @throws ForbiddenOperationException когда actor не участник и не admin
      */
     public ProjectRole requireProjectRole(User actor, Long projectId) {
         if (actor.getSystemRole() == SystemRole.ADMIN) {
@@ -91,13 +91,13 @@ public class AccessService {
     }
 
     /**
-     * Checks that the actor may edit the issue: Project Lead and the admin may
-     * edit any issue, Developer and QA only the issues they authored.
+     * Проверяет, что actor может редактировать issue: Project Lead и admin
+     * могут изменять любую issue, Developer и QA — только созданные ими.
      *
-     * @param actor the acting user
-     * @param issue the issue to be changed
-     * @throws ForbiddenOperationException when the actor is not a member of the
-     *         issue's project or lacks the rights for this particular issue
+     * @param actor действующий пользователь
+     * @param issue issue, которую нужно изменить
+     * @throws ForbiddenOperationException когда actor не участник проекта
+     *         этой issue или не имеет прав именно на эту issue
      */
     public void requireCanEditIssue(User actor, Issue issue) {
         if (actor.getSystemRole() == SystemRole.ADMIN) {

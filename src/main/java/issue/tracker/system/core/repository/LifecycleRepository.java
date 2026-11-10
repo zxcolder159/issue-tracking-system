@@ -6,15 +6,15 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 
 /**
- * Lifecycles — the workflow graphs of projects, exactly one per project.
+ * Lifecycle — графы workflow проектов, ровно один на проект.
  */
 public interface LifecycleRepository extends JpaRepository<Lifecycle, Long> {
 
     /**
-     * Returns the lifecycle of the project.
+     * Возвращает lifecycle проекта.
      *
-     * @param projectId id of the project
-     * @return the lifecycle, empty when the project has none
+     * @param projectId id проекта
+     * @return lifecycle, пусто, когда у проекта его нет
      */
     Optional<Lifecycle> findByProjectId(Long projectId);
 }

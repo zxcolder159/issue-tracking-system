@@ -9,22 +9,23 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Issues with soft-delete aware queries: active issues feed the board, the
- * list and the gantt view, issues with {@code deletedAt} set live in the trash.
+ * Issues с запросами, учитывающими soft delete: активные issues идут на доску,
+ * в список и в диаграмму Ганта, issues с установленным {@code deletedAt}
+ * лежат в корзине.
  */
 public interface IssueRepository extends JpaRepository<Issue, Long> {
 
     /**
-     * Returns active (not trashed) issues of the project for the board, list
-     * and gantt views. Every filter is optional: {@code null} disables it.
+     * Возвращает активные (не в корзине) issues проекта для доски, списка
+     * и диаграммы Ганта. Каждый фильтр необязателен: {@code null} отключает его.
      *
-     * @param projectId      id of the project
-     * @param assigneeUserId id of the assignee's user, or {@code null} for any
-     * @param priority       exact priority value, or {@code null} for any
-     * @param type           exact type value, or {@code null} for any
-     * @param titlePattern   lowercased {@code LIKE} pattern for the title
-     *                       (e.g. {@code "%bug%"}), or {@code null} for any
-     * @return matching issues ordered by due date, then by id
+     * @param projectId      id проекта
+     * @param assigneeUserId id пользователя-assignee или {@code null} для любого
+     * @param priority       точное значение priority или {@code null} для любого
+     * @param type           точное значение type или {@code null} для любого
+     * @param titlePattern   паттерн {@code LIKE} в нижнем регистре для заголовка
+     *                       (например {@code "%bug%"}), или {@code null} для любого
+     * @return подходящие issues, упорядоченные по due date, затем по id
      */
     @Query("""
             select i from Issue i
@@ -42,28 +43,28 @@ public interface IssueRepository extends JpaRepository<Issue, Long> {
                            @Param("titlePattern") String titlePattern);
 
     /**
-     * Returns all trashed issues of the project. Visibility filtering by role
-     * (Developer and QA see only their own) is applied by the service layer.
+     * Возвращает все issues проекта, лежащие в корзине. Фильтрацию видимости
+     * по роли (Developer и QA видят только свои) выполняет слой сервисов.
      *
-     * @param projectId id of the project
-     * @return issues with {@code deletedAt} set
+     * @param projectId id проекта
+     * @return issues с установленным {@code deletedAt}
      */
     List<Issue> findByProjectIdAndDeletedAtNotNull(Long projectId);
 
     /**
-     * Returns the active issues currently in the given status; used to move
-     * them away before the status is deleted.
+     * Возвращает активные issues, которые сейчас находятся в данном статусе;
+     * используется, чтобы вывести их оттуда перед удалением статуса.
      *
-     * @param statusId id of the status
-     * @return active issues in the status
+     * @param statusId id статуса
+     * @return активные issues в статусе
      */
     List<Issue> findByStatusIdAndDeletedAtNull(Long statusId);
 
     /**
-     * Returns an active (not trashed) issue by id.
+     * Возвращает активную (не в корзине) issue по id.
      *
-     * @param id id of the issue
-     * @return the issue, empty when not found or in the trash
+     * @param id id issue
+     * @return issue, пусто, когда она не найдена или лежит в корзине
      */
     Optional<Issue> findByIdAndDeletedAtNull(Long id);
 }

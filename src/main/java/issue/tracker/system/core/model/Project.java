@@ -16,6 +16,10 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.Instant;
 
+/**
+ * A project — an isolated space with its own members, roles and lifecycle.
+ * Deletion is soft: members lose access immediately, the data stays.
+ */
 @Getter
 @Setter
 @NoArgsConstructor
@@ -24,6 +28,7 @@ import java.time.Instant;
 @Entity
 @Table(name = "projects")
 public class Project {
+
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "project_seq_gen")
     @SequenceGenerator(name = "project_seq_gen", sequenceName = "project_seq")
@@ -35,9 +40,11 @@ public class Project {
     @Column(columnDefinition = "text")
     private String description;
 
+    /** Set automatically on the first insert, never changes afterwards. */
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
+    /** Soft delete marker; non-null means the project is deleted. */
     private Instant deletedAt;
 }

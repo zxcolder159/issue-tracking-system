@@ -24,9 +24,13 @@ import java.time.Instant;
 import java.util.List;
 
 /**
- * Issue operations on the board and in the list: creation always lands in the
- * first lifecycle status, status changes must follow a transition edge allowed
- * to the actor's role, deletion is a soft delete with the trash view.
+ * Issue operations for the board, the list and the gantt view.
+ *
+ * <p>Core rules: a new issue always lands in the first lifecycle status and
+ * its author is the acting member's membership; a status change must follow a
+ * transition edge allowed to the actor's effective project role (edges work in
+ * both directions); deletion is a soft delete — the issue goes to the trash
+ * and can be restored while its original status still exists.
  */
 @Service
 @RequiredArgsConstructor
@@ -39,7 +43,16 @@ public class IssueService {
     private final MembershipRepository membershipRepository;
     private final AccessService accessService;
 
-    /** UC-21, UC-22, UC-23, UC-25: active issues of the project with optional filters. */
+    /**
+     * UC-21, UC-22, UC-23, UC-25: returns the active (not trashed) issues of
+     * the project with optional filters. The same result feeds the board, the
+     * list and the gantt view.
+     *
+     * @param actor     the acting user, any project member or the admin
+     * @param projectId id of the project
+     * @param filter    optional filters, {@code null} is treated as «no filters»
+     * @return matching issues ordered by due date, then by id
+     */
     @Transactional(readOnly = true)
     public List<Issue> findIssues(User actor, Long projectId, Filter filter) {
         accessService.requireProjectAccess(actor, projectId);
@@ -49,7 +62,14 @@ public class IssueService {
         return issueRepository.findActive(projectId, f.assigneeUserId(), f.priority(), f.type(), titlePattern);
     }
 
-    /** UC-24: a single active issue with all fields. */
+    /**
+     * UC-24: returns a single active issue with all its fields.
+     *
+     * @param actor   the acting user, any project member or the admin
+     * @param issueId id of the issue
+     * @return the issue
+     * @throws NotFoundException when the issue does not exist or is in the trash
+     */
     @Transactional(readOnly = true)
     public Issue getIssue(User actor, Long issueId) {
         Issue issue = requireActiveIssue(issueId);
@@ -57,7 +77,21 @@ public class IssueService {
         return issue;
     }
 
-    /** UC-26: creates the issue in the first lifecycle status; the actor becomes the author. */
+    /**
+     * UC-26: creates the issue in the first status of the project lifecycle;
+     * the acting member becomes the author.
+     *
+     * @param actor   the acting user, must be an active project member (also
+     *                for the admin: an issue cannot exist without an author
+     *                membership)
+     * @param command fields of the new issue; title, type, priority and both
+     *                dates are required, assignee is optional
+     * @return the saved issue
+     * @throws ForbiddenOperationException when the actor is not an active member
+     * @throws RuleViolationException when the title, type or priority is blank,
+     *         the due date precedes the start date, the assignee is not a
+     *         project member or the lifecycle has no statuses
+     */
     @Transactional
     public Issue create(User actor, CreateCommand command) {
         Membership author = membershipRepository
@@ -93,7 +127,20 @@ public class IssueService {
                 .build());
     }
 
-    /** UC-27: partial update; a status change must follow the transition rules. */
+    /**
+     * UC-27: partial update of the issue. {@code null} fields are left
+     * unchanged; dates are validated as a combination of old and new values;
+     * a status change must follow the transition rules for the actor's role.
+     *
+     * @param actor   the acting user: Project Lead and admin may edit any
+     *                issue, Developer and QA only their own
+     * @param issueId id of the issue
+     * @param command fields to change, {@code null} means «keep the current value»
+     * @return the updated issue
+     * @throws RuleViolationException when a blank title is passed, the merged
+     *         dates are inconsistent, the assignee is not a project member or
+     *         the status change violates the transition rules
+     */
     @Transactional
     public Issue edit(User actor, Long issueId, EditCommand command) {
         Issue issue = requireActiveIssue(issueId);
@@ -127,7 +174,19 @@ public class IssueService {
         return issue;
     }
 
-    /** UC-29: moves the issue along an allowed transition edge; edges work in both directions. */
+    /**
+     * UC-29: moves the issue to the target status along a transition edge
+     * allowed to the actor's effective project role. Edges work in both
+     * directions, so the move may follow the edge either way.
+     *
+     * @param actor          the acting user: Project Lead and admin may move
+     *                       any issue, Developer and QA only their own
+     * @param issueId        id of the issue
+     * @param targetStatusId id of the target status within the same lifecycle
+     * @return the updated issue
+     * @throws RuleViolationException when the statuses are not connected by an
+     *         edge or the actor's role is not allowed to use it
+     */
     @Transactional
     public Issue changeStatus(User actor, Long issueId, Long targetStatusId) {
         Issue issue = requireActiveIssue(issueId);
@@ -136,7 +195,15 @@ public class IssueService {
         return issue;
     }
 
-    /** UC-30: soft delete — the issue goes to the trash. */
+    /**
+     * UC-30: soft delete — the issue disappears from the board and the list
+     * and goes to the trash.
+     *
+     * @param actor   the acting user: Project Lead and admin may trash any
+     *                issue, Developer and QA only their own
+     * @param issueId id of the issue
+     * @return the updated issue with {@code deletedAt} set
+     */
     @Transactional
     public Issue moveToTrash(User actor, Long issueId) {
         Issue issue = requireActiveIssue(issueId);
@@ -145,7 +212,14 @@ public class IssueService {
         return issue;
     }
 
-    /** UC-31: trashed issues; Developer and QA see only their own, Project Lead and admin all. */
+    /**
+     * UC-31: trashed issues of the project. Developer and QA see only the
+     * issues they created themselves, Project Lead and the admin see all.
+     *
+     * @param actor     the acting user, any project member or the admin
+     * @param projectId id of the project
+     * @return trashed issues visible to the actor
+     */
     @Transactional(readOnly = true)
     public List<Issue> trash(User actor, Long projectId) {
         ProjectRole role = accessService.requireProjectRole(actor, projectId);
@@ -159,8 +233,20 @@ public class IssueService {
     }
 
     /**
-     * UC-32: restores the issue into its original status; when that status no
-     * longer exists a target status must be provided.
+     * UC-32: restores the issue from the trash back onto the board, into its
+     * original status with all fields intact. When the original status has
+     * been deleted from the lifecycle, a target status of the same lifecycle
+     * must be provided instead.
+     *
+     * @param actor          the acting user: Project Lead and admin may restore
+     *                       any issue, Developer and QA only their own
+     * @param issueId        id of the trashed issue
+     * @param targetStatusId fallback status for the case when the original one
+     *                       no longer exists, {@code null} keeps the original
+     * @return the restored issue
+     * @throws RuleViolationException when the issue is not in the trash, its
+     *         original status is gone but no target is given, or the target
+     *         belongs to another lifecycle
      */
     @Transactional
     public Issue restore(User actor, Long issueId, Long targetStatusId) {
@@ -245,18 +331,55 @@ public class IssueService {
         return value == null || value.isBlank();
     }
 
-    /** Optional filters for board, list and gantt views (UC-22). Null means «no filter». */
+    /**
+     * Optional filters for the board, list and gantt views (UC-22).
+     *
+     * @param assigneeUserId filter by the assignee's user id
+     * @param priority       filter by the exact priority value
+     * @param type           filter by the exact type value
+     * @param titleLike      case-insensitive substring of the title
+     */
     public record Filter(Long assigneeUserId, String priority, String type, String titleLike) {
 
+        /**
+         * A filter that matches everything.
+         *
+         * @return a filter with all fields set to {@code null}
+         */
         public static Filter none() {
             return new Filter(null, null, null, null);
         }
     }
 
+    /**
+     * Fields of a new issue (UC-26).
+     *
+     * @param projectId      project to create the issue in
+     * @param title          required title
+     * @param description    optional free-form description
+     * @param type           required type value
+     * @param priority       required priority value
+     * @param startDate      required start of the work window
+     * @param dueDate        required end of the work window, must not precede the start
+     * @param assigneeUserId optional assignee, must be an active project member
+     */
     public record CreateCommand(Long projectId, String title, String description, String type,
                                 String priority, Instant startDate, Instant dueDate, Long assigneeUserId) {
     }
 
+    /**
+     * Partial update of an issue (UC-27). Every field is applied only when it
+     * is not {@code null}; untouched fields keep their current values.
+     *
+     * @param title          new title
+     * @param description    new description
+     * @param type           new type value
+     * @param priority       new priority value
+     * @param startDate      new start date
+     * @param dueDate        new due date
+     * @param assigneeUserId new assignee, an active project member
+     * @param targetStatusId new status, must be reachable along an allowed transition
+     */
     public record EditCommand(String title, String description, String type, String priority,
                               Instant startDate, Instant dueDate, Long assigneeUserId, Long targetStatusId) {
     }

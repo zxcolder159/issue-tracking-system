@@ -33,6 +33,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
+/**
+ * Unit tests for {@link IssueService}: creation in the first status, the
+ * permission matrix for edit and status changes, and trash visibility rules.
+ */
 @ExtendWith(MockitoExtension.class)
 class IssueServiceTest {
 

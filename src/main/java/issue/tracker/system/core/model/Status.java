@@ -18,6 +18,10 @@ import lombok.Setter;
 
 import java.time.Instant;
 
+/**
+ * A status of a lifecycle — one column of the board. The status with the
+ * lowest {@link #order} receives newly created issues.
+ */
 @Getter
 @Setter
 @NoArgsConstructor
@@ -26,6 +30,7 @@ import java.time.Instant;
 @Entity
 @Table(name = "statuses")
 public class Status {
+
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "status_seq_gen")
     @SequenceGenerator(name = "status_seq_gen", sequenceName = "status_seq")
@@ -34,6 +39,7 @@ public class Status {
     @Column(nullable = false)
     private String name;
 
+    /** Position of the column on the board; lower values come first. */
     @Column(name = "sort_order", nullable = false)
     private Integer order;
 
@@ -41,6 +47,7 @@ public class Status {
     @JoinColumn(name = "lifecycle_id", nullable = false)
     private Lifecycle lifecycle;
 
+    /** Soft delete marker; non-null means the column is removed from the board. */
     private Instant deletedAt;
 
 }

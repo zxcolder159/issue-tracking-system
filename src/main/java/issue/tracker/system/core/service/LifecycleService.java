@@ -23,9 +23,13 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Lifecycle management: statuses as ordered board columns and transitions as
- * edges of the workflow graph. Transitions are bidirectional: one edge covers
- * moves in both directions.
+ * Lifecycle management: statuses are the ordered columns of the board,
+ * transitions are the edges of the workflow graph.
+ *
+ * <p>Transitions are bidirectional: a single edge covers moves between its two
+ * statuses in both directions. Statuses are soft-deleted (they keep their
+ * issues' history), transitions are hard-deleted together with the statuses
+ * they touch.
  */
 @Service
 @RequiredArgsConstructor
@@ -37,20 +41,49 @@ public class LifecycleService {
     private final IssueRepository issueRepository;
     private final AccessService accessService;
 
+    /**
+     * UC-13: returns the lifecycle of the project with its statuses and transitions.
+     *
+     * @param actor     the acting user
+     * @param projectId id of the project
+     * @return the lifecycle
+     * @throws NotFoundException when the project has no lifecycle
+     */
     @Transactional(readOnly = true)
     public Lifecycle getLifecycle(User actor, Long projectId) {
         accessService.requireProjectAccess(actor, projectId);
         return requireLifecycle(projectId);
     }
 
-    /** Ordered non-deleted statuses of the project; the first one receives new issues. */
+    /**
+     * Returns the non-deleted statuses of the project in board order; the
+     * first one receives newly created issues.
+     *
+     * @param actor     the acting user
+     * @param projectId id of the project
+     * @return ordered statuses, empty when the lifecycle has none
+     */
     @Transactional(readOnly = true)
     public List<Status> getStatuses(User actor, Long projectId) {
         return statusRepository.findByLifecycleIdAndDeletedAtNullOrderByOrderAscIdAsc(
                 getLifecycle(actor, projectId).getId());
     }
 
-    /** UC-14: new status becomes the last board column, optionally connected to given statuses. */
+    /**
+     * UC-14: creates a status. The new status always becomes the last column
+     * of the board; optionally it is connected to the given statuses with
+     * transitions allowed to the given roles.
+     *
+     * @param actor            the acting user, must be Project Lead or admin
+     * @param projectId        id of the project
+     * @param name             non-blank name of the new status
+     * @param connectToStatusIds ids of statuses to connect with transitions,
+     *                           may be {@code null} or empty for none
+     * @param allowedRoles     roles allowed to use the created transitions,
+     *                         may be {@code null} for «nobody yet»
+     * @return the saved status
+     * @throws RuleViolationException when the name is blank
+     */
     @Transactional
     public Status createStatus(User actor, Long projectId, String name,
                                Set<Long> connectToStatusIds, Set<ProjectRole> allowedRoles) {
@@ -83,7 +116,19 @@ public class LifecycleService {
         return status;
     }
 
-    /** UC-17: adds an edge between two statuses; the same edge in either direction is a duplicate. */
+    /**
+     * UC-17: adds an edge between two statuses. The edge works in both
+     * directions; the same pair of statuses may be connected only once.
+     *
+     * @param actor         the acting user, must be Project Lead or admin
+     * @param projectId     id of the project
+     * @param fromStatusId  id of the first status
+     * @param toStatusId    id of the second status
+     * @param allowedRoles  non-empty set of roles allowed to move issues along the edge
+     * @return the saved transition
+     * @throws RuleViolationException when the roles are empty, the statuses
+     *         coincide or the pair is already connected in either direction
+     */
     @Transactional
     public Transition addTransition(User actor, Long projectId, Long fromStatusId, Long toStatusId,
                                     Set<ProjectRole> allowedRoles) {
@@ -109,7 +154,16 @@ public class LifecycleService {
                 .build());
     }
 
-    /** UC-18: replaces the set of roles allowed to use the transition. */
+    /**
+     * UC-18: replaces the set of roles allowed to use the transition.
+     *
+     * @param actor         the acting user, must be Project Lead or admin
+     * @param projectId     id of the project the transition belongs to
+     * @param transitionId  id of the transition
+     * @param allowedRoles  non-empty set of new roles
+     * @return the updated transition
+     * @throws RuleViolationException when the roles are empty
+     */
     @Transactional
     public Transition updateTransitionRoles(User actor, Long projectId, Long transitionId,
                                             Set<ProjectRole> allowedRoles) {
@@ -122,7 +176,14 @@ public class LifecycleService {
         return transition;
     }
 
-    /** UC-19: removes the edge; issues already in the statuses stay where they are. */
+    /**
+     * UC-19: removes the edge. Issues already sitting in the two statuses stay
+     * exactly where they are.
+     *
+     * @param actor        the acting user, must be Project Lead or admin
+     * @param projectId    id of the project the transition belongs to
+     * @param transitionId id of the transition to remove
+     */
     @Transactional
     public void deleteTransition(User actor, Long projectId, Long transitionId) {
         accessService.requireLead(actor, projectId);
@@ -131,9 +192,19 @@ public class LifecycleService {
     }
 
     /**
-     * UC-20: soft-deletes the status, moves its issues to the chosen status and
-     * removes every transition touching the deleted status. The last remaining
-     * status cannot be deleted.
+     * UC-20: soft-deletes the status together with its board column, moves its
+     * active issues to the chosen migration target and hard-deletes every
+     * transition touching the status. When the first column is deleted, new
+     * issues start landing in the next status automatically.
+     *
+     * @param actor             the acting user, must be Project Lead or admin
+     * @param projectId         id of the project
+     * @param statusId          id of the status to delete
+     * @param migrationTargetId id of the status to move the issues to; may be
+     *                          {@code null} only when the status holds no issues
+     * @throws RuleViolationException when this is the last remaining status of
+     *         the lifecycle, the status holds issues but no target is given, or
+     *         the target is the deleted status itself
      */
     @Transactional
     public void deleteStatus(User actor, Long projectId, Long statusId, Long migrationTargetId) {
@@ -162,7 +233,15 @@ public class LifecycleService {
         status.setDeletedAt(Instant.now());
     }
 
-    /** Both directions of the edge between the statuses, empty when the statuses are not connected. */
+    /**
+     * Returns the edge between the two statuses in both directions, empty when
+     * the statuses are not connected.
+     *
+     * @param lifecycleId id of the lifecycle both statuses belong to
+     * @param statusAId   id of the first status
+     * @param statusBId   id of the second status
+     * @return all edges connecting the statuses either way
+     */
     List<Transition> findEdge(Long lifecycleId, Long statusAId, Long statusBId) {
         List<Transition> edge = new ArrayList<>(
                 transitionRepository.findByLifecycleIdAndFromIdAndToId(lifecycleId, statusAId, statusBId));

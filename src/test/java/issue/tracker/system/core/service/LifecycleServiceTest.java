@@ -36,6 +36,10 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+/**
+ * Unit tests for {@link LifecycleService}: board-order rules for new statuses,
+ * duplicate transition edges, and status deletion with issue migration.
+ */
 @ExtendWith(MockitoExtension.class)
 class LifecycleServiceTest {
 

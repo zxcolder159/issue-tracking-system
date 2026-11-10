@@ -21,6 +21,15 @@ import lombok.Setter;
 
 import java.time.Instant;
 
+/**
+ * Membership of a user in a project with a per-project role. The same person
+ * may hold different roles in different projects.
+ *
+ * <p>Removing a member is a soft delete: the user loses access immediately,
+ * but the issues they created keep pointing at this membership. Because of the
+ * unique constraint on (user, project) a removed member is added back by
+ * reactivating the same row, not by inserting a new one.
+ */
 @Getter
 @Setter
 @NoArgsConstructor
@@ -29,6 +38,7 @@ import java.time.Instant;
 @Entity
 @Table(name = "memberships", uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "project_id"}))
 public class Membership {
+
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "membership_seq_gen")
     @SequenceGenerator(name = "membership_seq_gen", sequenceName = "membership_seq")
@@ -42,9 +52,11 @@ public class Membership {
     @JoinColumn(name = "project_id", nullable = false)
     private Project project;
 
+    /** Rights of the user inside this particular project. */
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ProjectRole role;
 
+    /** Soft delete marker; non-null means the user was removed from the project. */
     private Instant deletedAt;
 }

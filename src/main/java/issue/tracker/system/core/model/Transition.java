@@ -23,6 +23,11 @@ import lombok.Setter;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Ребро графа процесса между двумя статусами. Семантически двунаправленное:
+ * одно ребро разрешает перемещение issues между {@link #from} и {@link #to}
+ * в обе стороны.
+ */
 @Getter
 @Setter
 @NoArgsConstructor
@@ -31,6 +36,7 @@ import java.util.Set;
 @Entity
 @Table(name = "transitions")
 public class Transition {
+
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "transition_seq_gen")
     @SequenceGenerator(name = "transition_seq_gen", sequenceName = "transition_seq")
@@ -40,14 +46,17 @@ public class Transition {
     @JoinColumn(name = "lifecycle_id", nullable = false)
     private Lifecycle lifecycle;
 
+    /** Один конец ребра; направление сохранённой строки смысла не несёт. */
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "from_status_id", nullable = false)
     private Status from;
 
+    /** Другой конец ребра; направление сохранённой строки смысла не несёт. */
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "to_status_id", nullable = false)
     private Status to;
 
+    /** Роли в проекте, которым разрешено перемещать issues по ребру; пустое множество — никому. */
     @Builder.Default
     @ElementCollection
     @CollectionTable(name = "transition_roles", joinColumns = @JoinColumn(name = "transition_id"))

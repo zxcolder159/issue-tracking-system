@@ -16,6 +16,10 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.Instant;
 
+/**
+ * Проект — изолированное пространство со своими участниками, ролями и lifecycle.
+ * Удаление — soft delete: участники теряют доступ сразу, данные остаются.
+ */
 @Getter
 @Setter
 @NoArgsConstructor
@@ -24,6 +28,7 @@ import java.time.Instant;
 @Entity
 @Table(name = "projects")
 public class Project {
+
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "project_seq_gen")
     @SequenceGenerator(name = "project_seq_gen", sequenceName = "project_seq")
@@ -35,9 +40,11 @@ public class Project {
     @Column(columnDefinition = "text")
     private String description;
 
+    /** Проставляется автоматически при первой вставке и больше не меняется. */
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
+    /** Признак soft delete; не null означает, что проект удалён. */
     private Instant deletedAt;
 }

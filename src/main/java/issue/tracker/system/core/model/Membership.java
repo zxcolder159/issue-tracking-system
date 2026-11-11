@@ -21,6 +21,15 @@ import lombok.Setter;
 
 import java.time.Instant;
 
+/**
+ * Участие пользователя в проекте с ролью в рамках этого проекта. Один человек
+ * может иметь разные роли в разных проектах.
+ *
+ * <p>Удаление участника — soft delete: пользователь теряет доступ сразу,
+ * но созданные им issues продолжают ссылаться на это участие. Из-за
+ * уникального ограничения на (user, project) удалённый участник возвращается
+ * повторной активацией той же строки, а не вставкой новой.
+ */
 @Getter
 @Setter
 @NoArgsConstructor
@@ -29,6 +38,7 @@ import java.time.Instant;
 @Entity
 @Table(name = "memberships", uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "project_id"}))
 public class Membership {
+
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "membership_seq_gen")
     @SequenceGenerator(name = "membership_seq_gen", sequenceName = "membership_seq")
@@ -42,9 +52,11 @@ public class Membership {
     @JoinColumn(name = "project_id", nullable = false)
     private Project project;
 
+    /** Права пользователя внутри данного проекта. */
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ProjectRole role;
 
+    /** Признак soft delete; не null означает, что пользователь удалён из проекта. */
     private Instant deletedAt;
 }

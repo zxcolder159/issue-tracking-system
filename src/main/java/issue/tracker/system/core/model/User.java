@@ -15,6 +15,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * Зарегистрированный аккаунт. Глобальные права задаёт {@link #systemRole}; права
+ * внутри проекта определяются {@link Membership memberships} пользователя.
+ */
 @Getter
 @Setter
 @NoArgsConstructor
@@ -23,20 +27,25 @@ import lombok.Setter;
 @Entity
 @Table(name = "users")
 public class User {
+
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_seq_gen")
     @SequenceGenerator(name = "user_seq_gen", sequenceName = "user_seq")
     private Long id;
 
+    /** Отображаемое имя, которое видят другие пользователи. */
     @Column(nullable = false)
     private String name;
 
+    /** Логин, уникальный в масштабе системы. */
     @Column(nullable = false, unique = true)
     private String email;
 
+    /** Хеш пароля, но не сам пароль в открытом виде. */
     @Column(nullable = false)
     private String password;
 
+    /** Роль в масштабе системы; Admin действует как Project Lead в каждом проекте. */
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private SystemRole systemRole;

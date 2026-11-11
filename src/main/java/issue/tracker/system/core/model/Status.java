@@ -18,6 +18,10 @@ import lombok.Setter;
 
 import java.time.Instant;
 
+/**
+ * Статус lifecycle — одна колонка доски. Статус с наименьшим
+ * {@link #order} получает вновь созданные issues.
+ */
 @Getter
 @Setter
 @NoArgsConstructor
@@ -26,6 +30,7 @@ import java.time.Instant;
 @Entity
 @Table(name = "statuses")
 public class Status {
+
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "status_seq_gen")
     @SequenceGenerator(name = "status_seq_gen", sequenceName = "status_seq")
@@ -34,6 +39,7 @@ public class Status {
     @Column(nullable = false)
     private String name;
 
+    /** Позиция колонки на доске; меньшие значения идут раньше. */
     @Column(name = "sort_order", nullable = false)
     private Integer order;
 
@@ -45,5 +51,6 @@ public class Status {
     @JoinColumn(name = "lifecycle_id", nullable = false)
     private Lifecycle lifecycle;
 
+    /** Признак soft delete; не null означает, что колонка удалена с доски. */
     private Instant deletedAt;
 }

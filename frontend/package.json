@@ -1,0 +1,24 @@
+{
+  "name": "issue-tracking-frontend",
+  "private": true,
+  "type": "module",
+  "packageManager": "bun@1.4.4",
+  "scripts": {
+    "dev": "bun --bun nuxt dev",
+    "build": "bun --bun nuxt build",
+    "preview": "bun .output/server/index.mjs",
+    "postinstall": "bun --bun nuxt prepare",
+    "typecheck": "bun --bun nuxt typecheck"
+  },
+  "dependencies": {
+    "nuxt": "4.6.4",
+    "vue": "^3.5.0",
+    "vue-router": "^5.4.0"
+  },
+  "devDependencies": {
+    "@vue/language-plugin-pug": "^3.3.14",
+    "pug": "^3.0.4",
+    "typescript": "~5.9.3",
+    "vue-tsc": "^3.1.0"
+  }
+}

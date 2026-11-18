@@ -146,7 +146,6 @@ class IssueServiceTest {
         when(membershipRepository.findByUserIdAndProjectIdAndDeletedAtNull(100L, 1L))
                 .thenReturn(Optional.of(devMembership));
         when(statusRepository.findByIdAndDeletedAtNull(12L)).thenReturn(Optional.of(done));
-        // only the reverse edge Done -> To Do exists, which still allows the move
         when(transitionRepository.findByLifecycleIdAndFromIdAndToId(2L, 11L, 12L)).thenReturn(List.of());
         Transition edge = Transition.builder().lifecycle(lifecycle).from(done).to(todo)
                 .allowRoles(Set.of(ProjectRole.DEVELOPER)).build();

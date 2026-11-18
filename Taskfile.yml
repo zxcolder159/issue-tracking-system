@@ -1,0 +1,36 @@
+version: '3'
+
+tasks:
+  default:
+    cmds:
+      - task --list
+
+  install:
+    desc: Install frontend dependencies
+    dir: frontend
+    cmds:
+      - bun install --frozen-lockfile
+
+  dev:
+    desc: Start the Nuxt development server
+    dir: frontend
+    cmds:
+      - bun run dev
+
+  build:
+    desc: Build the frontend for production
+    dir: frontend
+    cmds:
+      - bun run build
+
+  check:
+    desc: Check frontend TypeScript types
+    dir: frontend
+    cmds:
+      - bun run typecheck
+
+  preview:
+    desc: Run the production build locally
+    dir: frontend
+    cmds:
+      - bun run preview

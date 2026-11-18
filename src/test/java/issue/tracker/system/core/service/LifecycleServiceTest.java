@@ -121,7 +121,6 @@ class LifecycleServiceTest {
         when(lifecycleRepository.findByProjectId(1L)).thenReturn(Optional.of(lifecycle));
         when(statusRepository.findByIdAndDeletedAtNull(11L)).thenReturn(Optional.of(todo));
         when(statusRepository.findByIdAndDeletedAtNull(12L)).thenReturn(Optional.of(inProgress));
-        // edge 12 -> 11 already exists, so adding 11 -> 12 is a duplicate
         when(transitionRepository.findByLifecycleIdAndFromIdAndToId(2L, 11L, 12L)).thenReturn(List.of());
         when(transitionRepository.findByLifecycleIdAndFromIdAndToId(2L, 12L, 11L))
                 .thenReturn(List.of(Transition.builder().lifecycle(lifecycle).from(inProgress).to(todo).build()));

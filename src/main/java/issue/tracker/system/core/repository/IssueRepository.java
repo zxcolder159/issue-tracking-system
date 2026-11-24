@@ -62,7 +62,8 @@ public interface IssueRepository extends JpaRepository<Issue, Long> {
     List<Issue> findByStatusIdAndDeletedAtNull(Long statusId);
 
     /**
-     * Возвращает активную (не в корзине) issue по id.
+     * Возвращает активную (не в корзине) issue по id с данными автора,
+     * исполнителя, проекта и статуса для карточки.
      *
      * @param id id issue
      * @return issue, пусто, когда она не найдена или лежит в корзине

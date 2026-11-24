@@ -79,14 +79,32 @@ public class IssueService {
         return issue;
     }
 
-    /** Активные участники проекта, которых можно назначить исполнителями. */
+    /**
+     * Возвращает активных участников проекта, которых можно назначить исполнителями
+     * при создании или редактировании задачи (UC-26 и UC-27).
+     *
+     * @param actor действующий пользователь, участник проекта или администратор
+     * @param projectId id проекта
+     * @return участия в порядке имени пользователя, затем id участия
+     * @throws ForbiddenOperationException если пользователю недоступен проект
+     */
     @Transactional(readOnly = true)
     public List<Membership> getAssignableMembers(User actor, Long projectId) {
         accessService.requireProjectAccess(actor, projectId);
         return membershipRepository.findByProjectIdAndDeletedAtNullOrderByUserNameAscIdAsc(projectId);
     }
 
-    /** Статусы, в которые пользователь может переместить issue из текущего статуса. */
+    /**
+     * Находит целевые статусы для формы редактирования задачи (UC-27).
+     * Учитывает переходы в обе стороны от текущего статуса и разрешения
+     * эффективной роли пользователя в проекте.
+     *
+     * @param actor действующий пользователь с правом редактирования задачи
+     * @param issueId id задачи
+     * @return активные целевые статусы в порядке колонок доски, затем по id
+     * @throws NotFoundException если задача отсутствует или лежит в корзине
+     * @throws ForbiddenOperationException если пользователь не может редактировать задачу
+     */
     @Transactional(readOnly = true)
     public List<Status> getAllowedStatuses(User actor, Long issueId) {
         Issue issue = requireActiveIssue(issueId);

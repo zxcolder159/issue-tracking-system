@@ -4,6 +4,7 @@ import issue.tracker.system.core.model.Membership;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -25,4 +26,7 @@ public interface MembershipRepository extends JpaRepository<Membership, Long> {
      */
     @EntityGraph(attributePaths = {"user", "project"})
     Optional<Membership> findByUserIdAndProjectIdAndDeletedAtNull(Long userId, Long projectId);
+
+    @EntityGraph(attributePaths = {"user", "project"})
+    List<Membership> findByProjectIdAndDeletedAtNullOrderByUserNameAscIdAsc(Long projectId);
 }

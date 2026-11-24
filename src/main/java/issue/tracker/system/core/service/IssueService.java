@@ -21,7 +21,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Операции с issues для доски, списка и диаграммы Ганта.
@@ -75,6 +77,32 @@ public class IssueService {
         Issue issue = requireActiveIssue(issueId);
         accessService.requireProjectAccess(actor, issue.getProject().getId());
         return issue;
+    }
+
+    /** Активные участники проекта, которых можно назначить исполнителями. */
+    @Transactional(readOnly = true)
+    public List<Membership> getAssignableMembers(User actor, Long projectId) {
+        accessService.requireProjectAccess(actor, projectId);
+        return membershipRepository.findByProjectIdAndDeletedAtNullOrderByUserNameAscIdAsc(projectId);
+    }
+
+    /** Статусы, в которые пользователь может переместить issue из текущего статуса. */
+    @Transactional(readOnly = true)
+    public List<Status> getAllowedStatuses(User actor, Long issueId) {
+        Issue issue = requireActiveIssue(issueId);
+        accessService.requireCanEditIssue(actor, issue);
+        ProjectRole role = accessService.requireProjectRole(actor, issue.getProject().getId());
+        Long statusId = issue.getStatus().getId();
+        Long lifecycleId = issue.getStatus().getLifecycle().getId();
+        return Stream.concat(
+                        transitionRepository.findByLifecycleIdAndFromId(lifecycleId, statusId).stream(),
+                        transitionRepository.findByLifecycleIdAndToId(lifecycleId, statusId).stream())
+                .filter(edge -> edge.getAllowRoles().contains(role))
+                .map(edge -> statusId.equals(edge.getFrom().getId()) ? edge.getTo() : edge.getFrom())
+                .filter(status -> status.getDeletedAt() == null && !statusId.equals(status.getId()))
+                .distinct()
+                .sorted(Comparator.comparing(Status::getOrder).thenComparing(Status::getId))
+                .toList();
     }
 
     /**

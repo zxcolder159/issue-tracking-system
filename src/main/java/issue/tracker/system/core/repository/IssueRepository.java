@@ -1,6 +1,7 @@
 package issue.tracker.system.core.repository;
 
 import issue.tracker.system.core.model.Issue;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -66,5 +67,8 @@ public interface IssueRepository extends JpaRepository<Issue, Long> {
      * @param id id issue
      * @return issue, пусто, когда она не найдена или лежит в корзине
      */
+    @EntityGraph(attributePaths = {
+            "author.user", "author.project", "assignee.user", "assignee.project", "project", "status.project"
+    })
     Optional<Issue> findByIdAndDeletedAtNull(Long id);
 }

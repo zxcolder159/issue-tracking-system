@@ -20,7 +20,7 @@ public interface StatusRepository extends JpaRepository<Status, Long> {
      * @return статус с подгруженным lifecycle, пусто, когда статус не найден
      *         или удалён через soft delete
      */
-    @EntityGraph(attributePaths = "lifecycle")
+    @EntityGraph(attributePaths = {"lifecycle", "project"})
     Optional<Status> findByIdAndDeletedAtNull(Long id);
 
     /**
@@ -30,5 +30,6 @@ public interface StatusRepository extends JpaRepository<Status, Long> {
      * @param lifecycleId id lifecycle
      * @return упорядоченные статусы, пусто, когда у lifecycle их нет
      */
+    @EntityGraph(attributePaths = "project")
     List<Status> findByLifecycleIdAndDeletedAtNullOrderByOrderAscIdAsc(Long lifecycleId);
 }

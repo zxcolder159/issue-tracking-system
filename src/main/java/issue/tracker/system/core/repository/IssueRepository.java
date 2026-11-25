@@ -30,11 +30,13 @@ public interface IssueRepository extends JpaRepository<Issue, Long> {
      */
     @Query("""
             select i from Issue i
+            left join i.assignee assignee
+            left join assignee.user assigneeUser
             where i.project.id = :projectId and i.deletedAt is null
-              and (:assigneeUserId is null or i.assignee.user.id = :assigneeUserId)
+              and (:assigneeUserId is null or assigneeUser.id = :assigneeUserId)
               and (:priority is null or i.priority = :priority)
               and (:type is null or i.type = :type)
-              and (:titlePattern is null or lower(i.title) like lower(:titlePattern))
+              and (:titlePattern is null or lower(i.title) like lower(cast(:titlePattern as string)))
             order by i.dueDate asc, i.id asc
             """)
     List<Issue> findActive(@Param("projectId") Long projectId,

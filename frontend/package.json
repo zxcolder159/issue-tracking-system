@@ -11,11 +11,15 @@
     "typecheck": "bun --bun nuxt typecheck"
   },
   "dependencies": {
+    "@nuxt/ui": "^4.13.1",
     "nuxt": "4.6.4",
+    "tailwindcss": "^4.3.5",
     "vue": "^3.5.0",
-    "vue-router": "^5.4.0"
+    "vue-router": "^5.4.0",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@iconify-json/lucide": "^1.2.159",
     "@vue/language-plugin-pug": "^3.3.14",
     "pug": "^3.0.4",
     "typescript": "~5.9.3",

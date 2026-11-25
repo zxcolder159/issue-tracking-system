@@ -1,0 +1,9 @@
+@import "tailwindcss";
+@import "@nuxt/ui";
+
+@theme {
+  --font-sans: Arial, Helvetica, sans-serif;
+}
+
+html, body, #__nuxt { width: 100%; min-width: 0; }
+button:not(:disabled) { cursor: pointer; }

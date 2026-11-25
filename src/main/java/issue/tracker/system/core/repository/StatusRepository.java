@@ -17,18 +17,19 @@ public interface StatusRepository extends JpaRepository<Status, Long> {
      * Возвращает неудалённый статус по id.
      *
      * @param id id статуса
-     * @return статус с подгруженным lifecycle, пусто, когда статус не найден
-     *         или удалён через soft delete
+     * @return статус с подгруженными жизненным циклом и проектом, пусто, когда
+     *         статус не найден или удалён через soft delete
      */
-    @EntityGraph(attributePaths = "lifecycle")
+    @EntityGraph(attributePaths = {"lifecycle", "project"})
     Optional<Status> findByIdAndDeletedAtNull(Long id);
 
     /**
-     * Возвращает неудалённые статусы lifecycle в порядке на доске
-     * (по {@code order}, затем по id). Первый элемент принимает новые issues.
+     * Возвращает неудалённые статусы lifecycle с подгруженным проектом в порядке
+     * на доске (по {@code order}, затем по id). Первый элемент принимает новые issues.
      *
      * @param lifecycleId id lifecycle
      * @return упорядоченные статусы, пусто, когда у lifecycle их нет
      */
+    @EntityGraph(attributePaths = "project")
     List<Status> findByLifecycleIdAndDeletedAtNullOrderByOrderAscIdAsc(Long lifecycleId);
 }

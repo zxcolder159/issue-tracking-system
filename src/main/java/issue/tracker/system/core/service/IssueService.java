@@ -21,7 +21,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Операции с issues для доски, списка и диаграммы Ганта.
@@ -75,6 +77,50 @@ public class IssueService {
         Issue issue = requireActiveIssue(issueId);
         accessService.requireProjectAccess(actor, issue.getProject().getId());
         return issue;
+    }
+
+    /**
+     * Возвращает активных участников проекта, которых можно назначить исполнителями
+     * при создании или редактировании задачи (UC-26 и UC-27).
+     *
+     * @param actor действующий пользователь, участник проекта или администратор
+     * @param projectId id проекта
+     * @return участия в порядке имени пользователя, затем id участия
+     * @throws ForbiddenOperationException если пользователю недоступен проект
+     */
+    @Transactional(readOnly = true)
+    public List<Membership> getAssignableMembers(User actor, Long projectId) {
+        accessService.requireProjectAccess(actor, projectId);
+        return membershipRepository.findByProjectIdAndDeletedAtNullOrderByUserNameAscIdAsc(projectId);
+    }
+
+    /**
+     * Находит целевые статусы для формы редактирования задачи (UC-27).
+     * Учитывает переходы в обе стороны от текущего статуса и разрешения
+     * эффективной роли пользователя в проекте.
+     *
+     * @param actor действующий пользователь с правом редактирования задачи
+     * @param issueId id задачи
+     * @return активные целевые статусы в порядке колонок доски, затем по id
+     * @throws NotFoundException если задача отсутствует или лежит в корзине
+     * @throws ForbiddenOperationException если пользователь не может редактировать задачу
+     */
+    @Transactional(readOnly = true)
+    public List<Status> getAllowedStatuses(User actor, Long issueId) {
+        Issue issue = requireActiveIssue(issueId);
+        accessService.requireCanEditIssue(actor, issue);
+        ProjectRole role = accessService.requireProjectRole(actor, issue.getProject().getId());
+        Long statusId = issue.getStatus().getId();
+        Long lifecycleId = issue.getStatus().getLifecycle().getId();
+        return Stream.concat(
+                        transitionRepository.findByLifecycleIdAndFromId(lifecycleId, statusId).stream(),
+                        transitionRepository.findByLifecycleIdAndToId(lifecycleId, statusId).stream())
+                .filter(edge -> edge.getAllowRoles().contains(role))
+                .map(edge -> statusId.equals(edge.getFrom().getId()) ? edge.getTo() : edge.getFrom())
+                .filter(status -> status.getDeletedAt() == null && !statusId.equals(status.getId()))
+                .distinct()
+                .sorted(Comparator.comparing(Status::getOrder).thenComparing(Status::getId))
+                .toList();
     }
 
     /**

@@ -1,6 +1,7 @@
 package issue.tracker.system.core.repository;
 
 import issue.tracker.system.core.model.Transition;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -37,8 +38,9 @@ public interface TransitionRepository extends JpaRepository<Transition, Long> {
      *
      * @param lifecycleId id lifecycle
      * @param fromId      id исходного статуса
-     * @return рёбра, у которых этот статус исходный
+     * @return рёбра с указанным началом, загруженным вторым статусом и списком разрешённых ролей
      */
+    @EntityGraph(attributePaths = {"to.project", "allowRoles"})
     List<Transition> findByLifecycleIdAndFromId(Long lifecycleId, Long fromId);
 
     /**
@@ -46,8 +48,9 @@ public interface TransitionRepository extends JpaRepository<Transition, Long> {
      *
      * @param lifecycleId id lifecycle
      * @param toId        id целевого статуса
-     * @return рёбра, у которых этот статус целевой
+     * @return рёбра с указанным концом, загруженным вторым статусом и списком разрешённых ролей
      */
+    @EntityGraph(attributePaths = {"from.project", "allowRoles"})
     List<Transition> findByLifecycleIdAndToId(Long lifecycleId, Long toId);
 
     /**

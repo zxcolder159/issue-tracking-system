@@ -45,6 +45,12 @@ public class IssueService {
     private final MembershipRepository membershipRepository;
     private final AccessService accessService;
 
+    @Transactional(readOnly = true)
+    public List<Status> getProjectStatuses(User actor, Long projectId) {
+        accessService.requireProjectAccess(actor, projectId);
+        return statusRepository.findByLifecycleIdAndDeletedAtNullOrderByOrderAscIdAsc(requireLifecycle(projectId).getId());
+    }
+
     /**
      * UC-21, UC-22, UC-23, UC-25: возвращает активные (не в корзине) issues
      * проекта с необязательными фильтрами. Один и тот же результат идёт

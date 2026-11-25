@@ -11,6 +11,7 @@ import issue.tracker.system.core.model.User;
 import issue.tracker.system.core.service.IssueService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -37,6 +38,23 @@ public class IssueController {
 
     private final IssueService issueService;
     private final IssueMapper issueMapper;
+
+    @GetMapping("/csrf")
+    public CsrfToken csrf(CsrfToken token) {
+        return token;
+    }
+
+    @GetMapping("/projects/{projectId}/issues")
+    public List<IssueDto> listIssues(@AuthenticationPrincipal(expression = "actor") User actor,
+                                     @PathVariable Long projectId) {
+        return issueService.findIssues(actor, projectId, null).stream().map(issueMapper::toIssueDto).toList();
+    }
+
+    @GetMapping("/projects/{projectId}/statuses")
+    public List<StatusDto> projectStatuses(@AuthenticationPrincipal(expression = "actor") User actor,
+                                          @PathVariable Long projectId) {
+        return issueMapper.toStatusDtos(issueService.getProjectStatuses(actor, projectId));
+    }
 
     /**
      * Открывает карточку активной задачи. Возвращает {@code 403}, если пользователю

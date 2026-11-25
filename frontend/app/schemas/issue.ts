@@ -1,5 +1,5 @@
 import * as z from 'zod'
-import { issueTypes, priorities, statuses } from '~/constants/issue'
+import { issueTypes, priorities } from '~/constants/issue'
 
 const id = z.number().int().positive()
 
@@ -31,9 +31,13 @@ export const createIssueFormSchema = issueFields.extend({
   dueDate: z.iso.date({ error: 'Choose a due date' }),
 }).refine(validDateRange, dateRangeError)
 
-export const issueSchema = createIssueSchema.safeExtend({
+export const issueSchema = z.object({
+  ...issueFields.shape,
   id,
-  status: z.enum(statuses),
+  status: z.string(),
+  type: z.string(),
+  priority: z.string(),
+  assigneeName: z.string().nullable(),
   authorUserId: id,
   createdAt: z.iso.datetime({ offset: true }),
 })

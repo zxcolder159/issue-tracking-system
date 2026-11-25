@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import type { Issue } from '~/types/issue'
-import { demoMembers } from '~/data/demo-project'
 
 const props = defineProps<{ issue: Issue }>()
-const assigneeName = computed(() => demoMembers.find(member => member.id === props.issue.assigneeUserId)?.name ?? 'Unassigned')
+const assigneeName = computed(() => props.issue.assigneeName ?? 'Unassigned')
 </script>
 
 <template lang="pug">

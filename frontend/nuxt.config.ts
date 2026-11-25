@@ -5,6 +5,10 @@ export default defineNuxtConfig({
   colorMode: { preference: 'light' },
   css: ['~/assets/css/main.css'],
   devtools: { enabled: true },
+  runtimeConfig: {
+    backend: { baseURL: 'http://localhost:8080', email: '', password: '' },
+    public: { projectId: 1 },
+  },
   nitro: { preset: 'bun' },
   typescript: {
     tsConfig: {

@@ -4,15 +4,15 @@ import type { ShallowUnwrapRef } from 'vue'
 import type { CreateIssueForm, CreateIssueInput, Issue } from '~/types/issue'
 import { issueTypes, priorities } from '~/constants/issue'
 import { createIssueFormSchema } from '~/schemas/issue'
-import { demoProject, demoMembers } from '~/data/demo-project'
+import type { Member } from '~/types/project'
 
-const props = defineProps<{ create: (input: CreateIssueInput) => Promise<Issue> }>()
+const props = defineProps<{ projectId: number; members: Member[]; create: (input: CreateIssueInput) => Promise<Issue> }>()
 const open = defineModel<boolean>('open', { required: true })
 const issueForm = useTemplateRef<ShallowUnwrapRef<Form<typeof createIssueFormSchema>>>('issueForm')
 const saving = computed(() => issueForm.value?.loading ?? false)
 const saveError = ref('')
 const emptyForm = (): CreateIssueForm => ({
-  projectId: demoProject.id,
+  projectId: props.projectId,
   title: '',
   description: '',
   type: undefined,
@@ -24,10 +24,10 @@ const emptyForm = (): CreateIssueForm => ({
 const form = reactive(emptyForm())
 const typeOptions = [...issueTypes]
 const priorityOptions = [...priorities]
-const assigneeOptions = [
+const assigneeOptions = computed(() => [
   { label: 'Unassigned', value: 0 },
-  ...demoMembers.map(member => ({ label: member.name, value: member.id })),
-]
+  ...props.members.map(member => ({ label: member.name, value: member.id })),
+])
 const assigneeValue = computed({
   get: () => form.assigneeUserId ?? 0,
   set: (value: number) => { form.assigneeUserId = value || null },
@@ -56,7 +56,7 @@ async function handleSubmit(event: FormSubmitEvent<CreateIssueInput>) {
     })
     open.value = false
   } catch {
-    saveError.value = 'Could not save the issue. Your form is preserved — please try again.'
+    saveError.value = 'Could not save the issue. Check your connection and try again.'
   }
 }
 </script>

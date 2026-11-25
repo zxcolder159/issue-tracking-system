@@ -1,46 +1,58 @@
-import { statuses } from '~/constants/issue'
-import { demoProject, demoMembers, demoUser } from '~/data/demo-project'
+import * as z from 'zod'
 import type { CreateIssueInput, Issue } from '~/types/issue'
-import { createIssueSchema, issueSchema } from '~/schemas/issue'
+import { createIssueSchema } from '~/schemas/issue'
 
-const storageKey = 'issue-tracker:demo-issues:v1'
-
-function readIssues(): Issue[] {
-  const raw = localStorage.getItem(storageKey)
-  if (!raw) return []
-  const legacyStatuses: Record<string, string> = {
-    'К выполнению': 'To Do',
-    'В работе': 'In Progress',
-    'Готово': 'Done',
-  }
-  const parsed: unknown = JSON.parse(raw, (key, value) =>
-    key === 'status' && typeof value === 'string' ? legacyStatuses[value] ?? value : value,
-  )
-  return issueSchema.array().parse(parsed)
-}
+const namedEntity = z.object({ id: z.number(), name: z.string() })
+const membership = z.object({ user: namedEntity })
+const issueResponse = z.object({
+  id: z.number(),
+  title: z.string(),
+  description: z.string().nullable(),
+  type: z.string(),
+  priority: z.string(),
+  startDate: z.string(),
+  dueDate: z.string(),
+  author: membership,
+  assignee: membership.nullable(),
+  project: namedEntity,
+  status: namedEntity,
+  createdAt: z.string(),
+}).transform((issue): Issue => ({
+  id: issue.id,
+  title: issue.title,
+  description: issue.description ?? '',
+  type: issue.type,
+  priority: issue.priority,
+  startDate: issue.startDate,
+  dueDate: issue.dueDate,
+  projectId: issue.project.id,
+  authorUserId: issue.author.user.id,
+  assigneeUserId: issue.assignee?.user.id ?? null,
+  assigneeName: issue.assignee?.user.name ?? null,
+  status: issue.status.name,
+  createdAt: issue.createdAt,
+}))
 
 export const issuesApi = {
-  async list(projectId: number): Promise<Issue[]> {
-    return readIssues().filter(issue => issue.projectId === projectId)
+  async list(projectId: number) {
+    return issueResponse.array().parse(await $fetch(`/api/projects/${projectId}/issues`))
   },
-
-  async create(values: CreateIssueInput): Promise<Issue> {
-    const input = createIssueSchema.parse(values)
-
-    if (input.projectId !== demoProject.id) throw new Error('Project not found')
-    if (input.assigneeUserId !== null && !demoMembers.some(member => member.id === input.assigneeUserId)) {
-      throw new Error('Select a project member')
-    }
-
-    const issues = readIssues()
-    const issue: Issue = {
-      ...input,
-      id: Math.max(0, ...issues.map(item => item.id)) + 1,
-      status: statuses[0],
-      authorUserId: demoUser.id,
-      createdAt: new Date().toISOString(),
-    }
-    localStorage.setItem(storageKey, JSON.stringify([issue, ...issues]))
-    return issue
+  async assignees(projectId: number) {
+    const response = await $fetch(`/api/projects/${projectId}/issues/assignees`)
+    return membership.array().parse(response).map(member => member.user)
+  },
+  async statuses(projectId: number) {
+    const response = await $fetch(`/api/projects/${projectId}/statuses`)
+    return namedEntity.array().parse(response).map(status => status.name)
+  },
+  async create(values: CreateIssueInput) {
+    const { projectId, ...body } = createIssueSchema.parse(values)
+    const csrf = await $fetch<{ headerName: string; token: string }>('/api/csrf')
+    const response = await $fetch(`/api/projects/${projectId}/issues`, {
+      method: 'POST',
+      headers: { [csrf.headerName]: csrf.token },
+      body,
+    })
+    return issueResponse.parse(response)
   },
 }

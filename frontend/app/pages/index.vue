@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { demoProject } from '~/data/demo-project'
 
 useHead({ title: 'Board · Issue Tracking System' })
-const { issues, loading, error, refresh, create } = useIssues(demoProject.id)
+const projectId = Number(useRuntimeConfig().public.projectId)
+const { issues, members, statuses, loading, error, refresh, create } = useIssues(projectId)
 const createOpen = ref(false)
 </script>
 
@@ -23,10 +23,13 @@ main(class="flex h-dvh min-w-0 flex-col gap-4 p-4 sm:p-6")
   )
   issue-board(
     :issues="issues"
+    :statuses="statuses"
     :loading="loading"
   )
   issue-create-modal(
     v-model:open="createOpen"
     :create="create"
+    :project-id="projectId"
+    :members="members"
   )
 </template>
